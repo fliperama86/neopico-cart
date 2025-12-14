@@ -27,9 +27,26 @@ Uses SDRAM with data reorganization (proven by MiSTer Neo Geo core):
 3. Prefetch sprite tiles into FPGA BRAM cache
 4. Serve from cache at full speed on PCK1B
 
+## Tools
+
+### NGFC Converter
+
+The `ngfc/` directory contains a Python tool for converting standard Neo Geo ROM sets to the NGFC format, optimized for SDRAM-based flash cartridges.
+
+```bash
+# Convert a MAME ROM set
+./ngfc/ngfc_converter.py convert /path/to/mslug/ mslug.ngfc
+
+# Verify an NGFC file
+./ngfc/ngfc_converter.py verify mslug.ngfc
+```
+
+See [ngfc/README.md](ngfc/README.md) for full documentation.
+
 ## Documentation
 
 - [Feasibility Study](docs/neogeo-flashcart-research.md) - Comprehensive technical analysis
+- [NGFC Converter](ngfc/README.md) - ROM conversion tool documentation
 
 ## References
 

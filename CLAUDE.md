@@ -47,9 +47,18 @@ Convert column-major to line-major storage for burst reads.
 - **MiSTer Neo Geo Core**: Uses SDRAM with prefetch (proven, well-documented)
 - **TerraOnion NeoSD**: Uses .neo format (uncompressed, not reorganized)
 
+## Project Structure
+
+- `ngfc/` - NGFC ROM converter tool (Python)
+  - `ngfc_converter.py` - Converts MAME/zip ROM sets to SDRAM-optimized NGFC format
+  - `test_ngfc_converter.py` - Test suite for transformation algorithms
+- `docs/` - Technical documentation
+  - `neogeo-flashcart-research.md` - Comprehensive feasibility study
+
 ## Key Resources
 
 - `docs/neogeo-flashcart-research.md` - Comprehensive feasibility study and technical analysis
+- `ngfc/README.md` - NGFC converter tool documentation
 - [NeoGeo Development Wiki](https://wiki.neogeodev.org/)
 - [MiSTer NeoGeo Core](https://github.com/MiSTer-devel/NeoGeo_MiSTer)
 - MiSTer's DEV_NOTES.md for SDRAM timing details
