@@ -5,41 +5,71 @@ An open-source Neo Geo MVS/AES flash cartridge using SDRAM instead of expensive 
 ## Project Goals
 
 - Support largest games (~96-128 MB total ROM)
-- Acceptable load times (~12 seconds)
-- Cost-effective design using SDRAM with prefetch (MiSTer-inspired approach)
+- Fast load times (~4 seconds for largest games)
+- Cost-effective design using SDRAM with bank interleaving (MiSTer-inspired)
 - Open-source hardware and software
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Flash Cart PCB                        │
-│                                                          │
-│  ┌──────────┐    ┌─────────────────┐    ┌───────────┐  │
-│  │ SD Card  │───▶│   RP2350B MCU   │───▶│  128MB    │  │
-│  │ (.ngfc   │    │   (Loader only) │    │  SDRAM    │  │
-│  │  files)  │    └────────┬────────┘    └─────┬─────┘  │
-│  └──────────┘             │                   │        │
-│                           │ SPI              │ 16-bit  │
-│                           ▼                   ▼        │
-│              ┌─────────────────────────────────────┐   │
-│              │         FPGA (ECP5 or Gowin)        │   │
-│              │  • SDRAM controller (120MHz)        │   │
-│              │  • Bank interleaving                │   │
-│              │  • Neo Geo bus interface            │   │
-│              │  • Level shifter control            │   │
-│              └──────────────┬──────────────────────┘   │
-│                             │                          │
-└─────────────────────────────┼──────────────────────────┘
-                              │ 5V Bus
-                              ▼
-                    ┌───────────────────┐
-                    │   Neo Geo MVS/AES │
-                    │   Cartridge Slot  │
-                    └───────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                      Flash Cart PCB                       │
+│                                                           │
+│  ┌──────────┐      ┌─────────────┐      ┌─────────────┐  │
+│  │ SD Card  │─SPI─▶│  RP2350B    │      │   128MB     │  │
+│  │ (.ngfc)  │      │             │      │   SDRAM     │  │
+│  └──────────┘      │ • SD/FAT32  │      └──────┬──────┘  │
+│                    │ • Menu UI   │             │         │
+│                    │ • Config    │         16-bit        │
+│                    └──────┬──────┘             │         │
+│                           │                    │         │
+│                       PIO/QSPI                 │         │
+│                      (20-30 MB/s)              │         │
+│                           │                    │         │
+│                           ▼                    ▼         │
+│              ┌────────────────────────────────────────┐  │
+│              │          FPGA (ECP5 or Gowin)          │  │
+│              │  • SDRAM controller (120MHz)           │  │
+│              │  • 4-bank interleaving                 │  │
+│              │  • Neo Geo bus interface               │  │
+│              │  • Menu video generation               │  │
+│              └───────────────────┬────────────────────┘  │
+│                                  │                       │
+│                           Level Shifters                 │
+│                                  │                       │
+└──────────────────────────────────┼───────────────────────┘
+                                   │ 5V Bus
+                                   ▼
+                         ┌───────────────────┐
+                         │   Neo Geo MVS/AES │
+                         │   Cartridge Slot  │
+                         └───────────────────┘
 ```
 
-The key insight: microcontrollers cannot serve real-time bus data due to timing constraints (~40-60ns for C-ROM). Only FPGA + fast memory can meet these requirements. MiSTer proves SDRAM works with proper data reorganization and bank interleaving.
+### Why Two Chips?
+
+**RP2350 (~$1.50)** handles "software" tasks that are easy in C but painful in HDL:
+- SD card FAT32 filesystem parsing
+- Menu system and user input
+- Configuration and save management
+- Uses PIO for high-speed FPGA data transfer (20-30 MB/s)
+
+**FPGA** handles timing-critical tasks requiring nanosecond precision:
+- SDRAM controller with 4-bank interleaving
+- Neo Geo bus interface (~40-60ns response for C-ROM)
+- Real-time data serving during gameplay
+
+Microcontrollers cannot serve real-time bus data due to timing constraints. Only FPGA + fast memory can meet these requirements. MiSTer proves SDRAM works with proper data reorganization and bank interleaving.
+
+### Boot Sequence
+
+1. RP2350 boots, initializes FPGA (bitstream from flash)
+2. RP2350 reads SD card, displays menu via FPGA video
+3. User selects game
+4. RP2350 streams .ngfc file to FPGA via PIO (~4 sec for largest games)
+5. FPGA writes to SDRAM as data arrives
+6. FPGA switches to "play" mode, serves all bus requests
+7. RP2350 monitors for menu button combo
 
 ## Bill of Materials Estimate
 
