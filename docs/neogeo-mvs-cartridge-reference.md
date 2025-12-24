@@ -40,7 +40,7 @@ A comprehensive technical reference for the Neo Geo MVS cartridge interface, cov
 
 ## Board Structure
 
-The Neo Geo cartridge consists of two separate PCBs connected via internal ribbon cables:
+The Neo Geo cartridge consists of two separate PCBs stacked inside the cartridge shell. Each board has its own edge connector and plugs into a separate slot on the motherboard (CTRG1 for CHA, CTRG2 for PROG):
 
 ### CHA Board (Bottom - CTRG1)
 
@@ -101,7 +101,7 @@ All timing derives from a master crystal oscillator:
 | ROM Type | Bus Width | Max Size | Timing Requirement | Purpose |
 |----------|-----------|----------|-------------------|---------|
 | P-ROM | 16-bit | 2MB+ (banked) | 150ns | 68000 program |
-| C-ROM | 32-bit (2×16) | 64MB+ | <250ns (7 mclk) | Sprite graphics |
+| C-ROM | 32-bit (2×16) | 64MB+ | <250ns (~8 mclk window) | Sprite graphics |
 | S-ROM | 8-bit | 128KB+ | ~200ns (5-6 mclk, uncertain) | Fix layer graphics |
 | M-ROM | 8-bit | 128KB+ | Relaxed | Z80 program |
 | V-ROM | 8-bit | 32MB+ | A: >2μs, B: 250ns | ADPCM samples |
@@ -165,7 +165,7 @@ The C-ROM bus is the most timing-critical. It feeds sprite graphics data to the 
 | Data bus width | 32 bits (CR0-CR31) |
 | Organization | Paired 16-bit ROMs (odd/even) |
 | Max capacity | 64MB+ (with banking) |
-| Timing requirement | <250ns (7 mclk) |
+| Timing requirement | <250ns (see timing note below) |
 | Tiles per scanline | Max 96 |
 
 ### ROM Pairing
@@ -191,9 +191,11 @@ C-ROM addresses are extracted from the multiplexed P-bus using latch chips:
 
 **PCK1B Timing:**
 - Frequency: 1.5 MHz
-- Low period: 55ns
-- High period: 610ns
+- Low period: 55ns (address setup)
+- High period: 610ns (data valid window)
 - **Total period: ~666ns (16 mclk)**
+
+**C-ROM Timing Note:** Two C-ROM reads occur per PCK1B period (16 pixels / 8 pixels per read = 2 reads), giving ~8 mclk (~333ns) per read. The <250ns ROM speed requirement provides adequate margin. The wiki states "anything under 250ns" works reliably.
 
 ### Tile Format
 
@@ -674,9 +676,10 @@ Modern components (3.3V FPGA, MCU, PSRAM) require level shifting:
 
 ---
 
-*Document version: 1.1*
+*Document version: 1.2*
 *Created: December 2025*
 *Last updated: December 2025 - Fact-checked against NeoGeo Development Wiki and other sources*
 
 ### Changelog
+- **v1.2**: Removed incorrect ribbon cable claim (boards use separate edge connectors CTRG1/CTRG2), clarified C-ROM timing window (~8 mclk per read, not 7 mclk).
 - **v1.1**: Corrected clock generation attribution (NEO-D0 vs LSPC2-A2), clarified NEO-D0 functions (calendar is D4990, not NEO-D0), updated NEO-B1 description (palette RAM is external), noted S-ROM timing uncertainty.
