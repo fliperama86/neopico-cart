@@ -55,48 +55,63 @@ The BackBit Platinum is a commercial Neo Geo flash cart that provides key archit
 
 | ROM Type | Memory Technology | Details |
 |----------|------------------|---------|
-| C-ROM | **48× 512Kbit×16 Parallel SRAM** | Alliance Memory, **10 ns access time** |
-| P-ROM | 32 MB QPI PSRAM | Relaxed timing allows slower memory |
-| V-ROM | Shared 16 MB Serial PSRAM | ADPCM audio is buffered |
-| S-ROM | Shared 16 MB Serial PSRAM | Fix layer has relaxed timing |
-| M-ROM | Shared 16 MB Serial PSRAM | Z80 program, low bandwidth |
+| All ROMs | **PSRAM** | Pseudo-Static RAM stores entire loaded game |
+
+From Evie's VCF SoCal 2025 presentation:
+> - *"PSRAM (Pseudo-Static Random Access Memory) stores loaded game"*
+> - *"The FPGA plays traffic cop to serve PSRAM to the NEO GEO, support banking and emulating the link"*
+> - *"The data lines of the RAM chips are connected to the CPU, but not to the FPGA"*
+
+**Key insight**: PSRAM serves data **directly** to Neo Geo buses — the FPGA only handles address translation and banking, NOT data. No FPGA BRAM caching required!
+
+**Why PSRAM works** (from Evie):
+> *"The nice thing about the PS RAM is that on the outside, it operates just like a traditional static RAM chip from way back when. So, it can serve data pretty quick without having to send it a lot of series of commands."*
+
+This avoids high-speed PCB design (>25-50 MHz) required for SDRAM.
 
 **FPGA Configuration**:
-- 4× Lattice iCE40 FPGAs across two boards
-- Functions: Address decode, bank switching, level shifting management, bus timing
-- Quote from Evie: *"I was using CMOS logic to do the banking but eventually replaced them with FPGA logic because I wanted to shave off a few nanoseconds"*
+- 2× Lattice iCE40 FPGAs (largest flat-pack version to avoid BGA assembly costs)
+- Functions: Address decode, bank switching, link emulation
+- **FPGA is NOT in the data path** — saves pins and latency
+- FPGA controls PSRAM address lines; PSRAM data lines connect directly to Neo Geo
+
+**Memory Configuration**:
+- 8× PSRAM chips for C-ROM (64 MB total, ~8 MB each)
+- Additional PSRAM for P/V/S/M-ROM
 
 **Microcontroller (STM32)**:
-- Role: SD card access, menu system, loading ROM data into RAM
+- Role: SD card access, menu system, loading ROM data into PSRAM
 - **NOT involved in real-time bus serving**
-- Quote: *"The timing would be way too tight to do that with any microcontroller"*
-- Loading speed: ~40 MB/s via SPI to both parallel SRAM and serial PSRAM
+- Pipelines data over 80-bit bus to FPGAs during loading
 - Total load time: ~12 seconds for largest games
 
-**Level Shifters**:
-- Texas Instruments parts (5V tolerant)
-- Latency: 5-8 ns per stage
-- Direction must be pre-specified (no auto-sensing to avoid latency)
+**Key challenges mentioned**:
+- **Metastability**: Unsettled FPGA inputs can cascade unknown states through gate chains
+- **Six-slot MVS machines**: Bus multiplexing across 6 slots adds significant latency
+- **Bidirectional address bus**: Input from Neo Geo, output to PSRAM requires careful timing
+- **Level shifter latency**: Must use direction-specified shifters (not auto-sensing) to minimize delay
 
 #### Key Insights from BackBit
 
-1. **Fast parallel SRAM is mandatory for C-ROM** — 10 ns access time required
-2. **PSRAM is acceptable for P/V/S/M-ROM** — these have relaxed timing
+1. **PSRAM is fast enough for ALL ROMs including C-ROM** — no caching needed, direct bus connection
+2. **FPGA handles addressing only** — data path is PSRAM → Neo Geo directly (saves FPGA pins)
 3. **Microcontrollers cannot serve real-time bus data** — only for loading/menu
-4. **FPGA handles all bus timing** — even "a few nanoseconds" matter
-5. **Level shifter latency adds up** — must be accounted for in timing budget
+4. **PSRAM behaves like classic SRAM** — simple interface, no command sequences like SDRAM
+5. **Avoids high-speed PCB design** — staying under 25-50 MHz simplifies layout
 6. **12-second load time is acceptable** — users tolerate this for the capability
+7. **Latency optimization is critical** — metastability, level shifters, bus direction all add up
 
 #### BackBit Cost Implications
 
-Estimated BOM for the parallel SRAM approach:
-- 48× 10ns SRAM chips: ~$400-600
-- Serial PSRAM for other ROMs: ~$20-30
-- 4× iCE40 FPGAs: ~$20-40
-- Level shifters, passives, PCBs: ~$50-100
-- **Total estimated BOM: ~$500-800**
+Estimated BOM for the PSRAM + FPGA approach:
+- ~10× PSRAM chips (8 for C-ROM + others): ~$40-80
+- 2× iCE40 FPGAs (flat-pack, not BGA): ~$10-20
+- Level shifters (TI, direction-specified): ~$20-40
+- STM32 MCU: ~$5-10
+- Passives, connectors, PCBs: ~$30-50
+- **Total estimated BOM: ~$105-200**
 
-This explains the $400 pre-order / $500 retail pricing.
+This is significantly cheaper than fast parallel SRAM would be, making the $400 pre-order / $500 retail pricing profitable.
 
 ---
 
@@ -361,11 +376,21 @@ This means ONE burst read returns an entire tile line ready for the NEO-ZMC2.
 - Access time: 70-150 ns random access
 - Cost: 128 Mbit (16 MB) ~$4.60 each
 - 80 MB = ~$28 total (6 chips)
-- **Verdict**: Too slow for C-ROM, fine for V/S/M-ROM
+- **Verdict**: **Proven to work for ALL ROMs including C-ROM** (BackBit)
 
 **QPI PSRAM**:
 - Similar timing to Octal
-- Used by BackBit for P-ROM (relaxed timing)
+- BackBit uses PSRAM for ALL ROM types including C-ROM
+
+**Key insight from BackBit**: PSRAM works for C-ROM **without caching**. From Evie:
+> *"The nice thing about the PS RAM is that on the outside, it operates just like a traditional static RAM chip from way back when. So, it can serve data pretty quick without having to send it a lot of series of commands."*
+
+The architecture:
+1. PSRAM data lines connect **directly** to Neo Geo buses
+2. FPGA handles address translation/banking only (not in data path)
+3. No high-speed PCB design needed (stays under 25-50 MHz)
+
+This is simpler than SDRAM approaches and avoids FPGA BRAM caching complexity.
 
 ### HyperRAM
 
@@ -525,20 +550,24 @@ Support only games up to 32 MB C-ROM (most pre-1996 titles):
 
 | Approach | Memory Cost | FPGA/Logic | Total BOM |
 |----------|-------------|------------|-----------|
-| BackBit (10ns SRAM) | ~$1500 | ~$40 | ~$1600 |
+| BackBit (PSRAM + FPGA cache) | ~$30-60 | ~$20-50 | ~$100-210 |
 | 55ns SRAM Interleaved | ~$450 | ~$40 | ~$500 |
 | Hybrid Cache | ~$100 | ~$40 | ~$200 |
 | SDRAM + Prefetch | ~$10 | ~$50 | ~$100 |
 | Lite Cart (32MB) | ~$180 | ~$40 | ~$250 |
 
+**Note**: BackBit's PSRAM approach is comparable in cost to SDRAM + prefetch, validating that expensive fast SRAM is not required.
+
 ---
 
-## Critical Unknowns
+## Critical Unknowns (Updated)
 
-1. **Can 55 ns SRAM with interleaving meet timing?** — Requires hardware testing
-2. **Exact NEO-ZMC2 timing margins?** — No detailed timing diagrams found
-3. **Can prefetch reliably predict tile accesses?** — Requires LSPC timing analysis
-4. **Minimum viable C-ROM access time?** — Need oscilloscope measurements on real hardware
+1. ~~**Can slower memory work for C-ROM?**~~ — **ANSWERED: Yes!** BackBit proves PSRAM works with direct connection (no caching!)
+2. ~~**Is FPGA caching required?**~~ — **ANSWERED: No!** PSRAM connects directly to Neo Geo data bus; FPGA handles addressing only
+3. **Exact PSRAM part numbers used?** — Evie mentions 8 MB chips for C-ROM, but specific parts unknown
+4. **Which iCE40 variant?** — "Largest flat-pack" suggests iCE40HX4K or HX8K in TQFP package
+5. **Six-slot MVS compatibility** — Evie mentioned this required additional latency optimization
+6. **Exact NEO-ZMC2 timing margins?** — No detailed timing diagrams found
 
 ---
 
@@ -841,7 +870,7 @@ A conversion tool would transform standard .neo or MAME ROM sets into this optim
 - [TerraOnion NeoBuilder Guide](https://wiki.terraonion.com/index.php/Neobuilder_Guide)
 - [neosdconv tool](https://github.com/city41/neosdconv)
 - Alliance Memory SRAM Datasheets (AS6C8008 series)
-- VCF SoCal 2025 Talk Transcript (Evie Salomon, BackBit)
+- VCF SoCal 2025 Talk (Evie Salomon, BackBit) — transcript available at `docs/transcript.txt`
 
 ---
 
@@ -850,4 +879,10 @@ A conversion tool would transform standard .neo or MAME ROM sets into this optim
 - **2024-12-13**: Initial compilation of research findings
 - **2024-12-13**: Added ROM format analysis (NeoSD .neo format, MiSTer reorganization, custom format proposal)
 - **2024-12-13**: Added detailed MiSTer source code analysis including exact transformation algorithms from `neogeo_loader.cpp`
+- **2024-12-23**: **MAJOR CORRECTION**: Updated BackBit architecture based on Evie's VCF SoCal 2025 presentation transcript. Key findings:
+  - BackBit uses PSRAM for ALL ROMs including C-ROM (not 10ns parallel SRAM)
+  - **No FPGA caching required** — PSRAM connects directly to Neo Geo data bus
+  - FPGA handles addressing only, not data path
+  - 2× iCE40 FPGAs (flat-pack), 8× PSRAM chips for C-ROM
+  - This dramatically simplifies the architecture vs. SDRAM+prefetch approaches
 - Based on analysis of BackBit Platinum MVS architecture, MiSTer FPGA Neo Geo core, TerraOnion NeoSD, and original MiSTer source code

@@ -56,3 +56,4 @@ dkms.conf
 ngfc/__pycache__/
 roms
 *.ngfc
+.obsidian/

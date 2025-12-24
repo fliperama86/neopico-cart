@@ -1,0 +1,417 @@
+Hello everyone. This is uh my talk about uh the Neo Geo or at least the work I'm
+doing on it. I run a small company called Backbit, which makes hardware for
+vintage machines. Uh, currently I do it all myself, but uh, might need some help
+soon. Okay, so this is the first product that
+I ever worked on for Backbit when I was really just getting started with electronics. You can see the
+breadboard. uh some board, someone who calls himself Dorktronic made the board. I bought that
+on eBay as a breakout board. Um and then I used a Arduino like device called the
+Tinsi. And then I made my own PCB. And
+then uh this is the next version of that cartridge. I called it the Backbit Pro
+cartridge. And I upgraded from the TNC to a STM 32 microcontroller.
+And then it's got the pin edge there which attaches to adapters that can then
+run in not just the Commodore 64 but um all the any 6502 machine any Z80 machine
+um these other machines from the 80s. Uh it's the Fairchild channel F. There's
+like a Signetics processor inside the Innerton and some NEC processor and the
+Epoch Super Cassette Vision and so on and so on. Um, and so there's adapt these are some
+of the adapters that will adapt the cartridge to go into any of these machines. And there's like there's like
+almost 40 of them now. And so
+I'm just going to go over a brief overview of what the Backbit Pro cartridge does.
+And this is something I talked about in my talk last year here. So, it emulates ROM and RAM.
+Um, it supports I'd like to say it supports all the good ones, all the good systems from the 80s, but um maybe some
+of the more business-like machines it won't connect to, but um for playing games is pretty versatile on anything in
+that's 8bit. Um and even systems that were 16 bit but came out in the 8bit era
+like the Intelvision or the TI99. Um the cartridge itself is limited by
+memory because it uses memory internal to the microcontroller which is about one it's a little more than a megabyte
+but it's a megabyte that can be accessible um by the cartridge
+and it's limited by wires. So there's a 16 bit address but address bus 8bit data
+bus and some control signals. There's less control signals on some adapters
+because it uses some of those pins to tell the cartridge which machine it's being plugged into.
+And so here's the first real limitation of the cartridge and this is kind of what led to thinking about other
+projects. Um I can easily talk to a machine most machines running at around 4 megahertz.
+So that's around 200 nconds of latency. Um, but once the latency goes down, so
+the Atari 7800 has a chip called Maria, which is the graphics chip, and that
+runs, I believe it makes data requests around 7 megahertz, like half the NTSC rate.
+And it's possible for me to serve data to it, but um I really have to cram for
+optimizing ARM instructions to do that because it's it's using polling to serve
+data. Um, and so I'm able to support all the
+original titles on the Atari 7800, but some of the some of the homebrews uh don't work with this adapter.
+And that's that's because um the logic becomes more complex when banking gets
+used and I just can't optimize the instructions fast enough to emulate every style of banking.
+And so this is when I started to feel like, oh, you know, I wish I could do better. Um, so one of the things I added to some
+of the adapters was a pick co-processor. It I The reason I picked uh PIC was it's
+different than SDM32. I just wanted to try on a different uh different kind of
+processor. And so I'm using that on the MSX to emulate the the sound. um the sound
+device present on some cartridges which is called SEC. It's a very small wave table. It's like a 32 byte wave table.
+So you get these very short loop sounds. It's kind of like playing mods on an AmIGGA almost. Um
+and then also for the 7800 I was able to emulate the Pokey sound chip
+uh using that same processor. And then on the Aquarius, I was able to emulate the AY8910 sound chip, also called the
+YM2149. It's a squarewave sound chip.
+And then on the Odyssey 2, I was able to emulate the voice. And I didn't even need the PC co-processor for that. uh
+because the machine runs so slow is able to code enough ARM instructions to just
+output um a signal to a DAC present on the adapter like a serial DAC with like
+six pins. Um so I was able to extend the functionality, you know, beyond kind of
+the original capabilities of the the SDM32 microcontroller. Uh but I wanted
+more. So I decided I had to get into FPGA. So over the last year basically
+I've been trying to do things with FPGA trying to find the right project. That's
+something that's that's something that you know maybe can't be done with a microcontroller or would require a much
+faster microcontroller but why not just use FPGA instead. Um I never got into
+like Raspberry Pi. Okay, I know that's a very popular thing, but as soon as I move from Arduino to SDM
+microcontroller, I just wanted to architect everything around that. So, this is an adapter to go from the back
+cartridge to the Famicom. And so I stuck a some uh bus
+transceivers and an additional RAM chip because the NES it's like a regular 8 m
+excuse me it's a regular 8-bit machine like times two because there's the CPU
+bus and there's also the PPU the picture processing unit. Um, and so the backbit
+cartridge itself only has enough signal lines to do the CPU. And this extends
+that to be able to connect that RAM chip to
+uh to the cartridge uh sorry to to the Famicom to serve it
+the graphics it needs. And also the FPGA is able to manage different mappers
+potentially, but I only ever got around to implementing one, the basic mapper, so I could play the 48K uh Super Mario
+Brothers. Um, but I never went beyond that because I realized, I mean, you
+know, it was it was fun to get to this point to make something that could play some games on the Famcom. But you look
+at the Everdrive clones on AliExpress for like 20 bucks and it's like, okay, well, it's a hard bargain to compete
+with. Um, so it just it just seemed like it wasn't going to be really worth the effort to try to go and implement all
+the mappers and and plus there's a lot of parts on this adapter and the adapters are supposed to be simple and
+cheap and so it that's why this remained a prototype.
+So then my next FPGA prototype was going to be called the backid 2. So the SID is
+the sound chip for the Commodore 64. And I had already emulated that with a STM
+microcontroller on a product I call the back SID, which I don't sell anymore, which
+I don't know if anyone cares if I open source because there's so many other options. Um, but the advantage to doing
+that with FPGA is that it's cycle accurate. So instead of the sound being coming out around 30 kilhertz, it can go
+the full one megabyte sampling rate of the system. So the square waves are a little more crisp. Um, it can even
+support two channels at the same time. Um, but I didn't move this beyond a
+prototype because the FPGA is that I'm using, it's called ICE 40. It's not
+great at doing things like uh filters uh because it doesn't have built-in
+floating point. So the SDM microcontroller I'm using actually has better floating actually it has a
+floating point processor. Um and the way the data is moving it's going into the
+microcontroller and then flowing to the FPGA. And the reason it does it that way is because the microcontroller is 5 volt
+tolerant whereas the FPGA is not. Um, so I just stopped working on it
+because I realized filters would be too too difficult to get working as good as
+the original backid. So I just decided to stop there. And I figure there's already a lot of SID clones. So, you
+know, kind of like the previous thing, there's kind of too much to compete with to make something really compelling and
+better than what's out there. So, the next prototype I made was the 7800 cartridge, which is essentially the
+original backpick cartridge with the adapter just built into the same board.
+Um, and then it also has similar to what I did for the Famcom, it has u RAM and
+level shifters built in on there so that it can serve so it can sort it can
+support uh homebrews that are like one megabyte of code and one megabyte of graphics. Um, but I never fully
+implemented it because I just realized uh there's other pretty good options out there like the 7800 game drive and I
+don't know. I just don't want to be spending the rest of my life selling uh Atari 78 Curry 7800 cartridges. Uh,
+forgive me. So, next um I think Keith will like this.
+The Virtual Boy cartridge. So, I made this. I was able to get some games
+running on it. Um, there are, as I, as far as I know, no other STbased card
+solutions. I think someone on the internet is promising one and they haven't quite delivered yet.
+Um, but my biggest frustration with this is it's got a proprietary connector that
+you can't get anymore. Someone in Canada, I think, made a a reproduction one, but he charges quite a bit for just
+the connector. So, just looking at the financials of it, it just didn't seem like it would it would make sense. Uh,
+and also the case has to be really really small and thin, and I just didn't
+think it was going to be something that would come out nicely with 3D printing. Uh, so for those issues, I decided not
+to proceed. I know Keith still really wants it. So, I mean I that the option's
+not closed, but it's just I'm one person and I can do so many things and to get
+this off the ground, I would need someone to help out kind of more on the manufacturing side of things.
+Okay, so here we are. Why Neo Geo? Um, on the left you can see an original Neo
+Geo cabinet. Um, but that's not actually what I work with. I work with just a small little harness that goes inside
+the bottom of the machine. It's called MVS unit. And then the other one you see
+here is the AES and that's like the home console version. And I haven't I I'm not
+officially supporting that yet, but it's something I'm considering. So there's these two two versions that are very
+very similar hardware, but totally different cartridges. Okay. So why did I get started on Neo
+Geo? So a year ago, I was here and a friend of mine named Danny, he said, "Why don't you try Neo Geo?" And I was
+like, "That's a weird idea." And I thought, you know, and I thought that that just seems kind of crazy. And
+uh but you know, here we are. Uh
+and everyone knows arcade games are the best games, right? All this vintage computer nerds, right? Because the home
+versions of most games are scaled down from the arcade versions of games. I should probably change that. the
+original version of a game is often often better.
+Um, so I thought this would be a challenge. Um, it's like 10 backbit
+cartridges in one sort of. Um, there are Neo Geo cartridges
+available, but there are some things they don't do. Like one thing is they uh most of them
+take a long time to load a game like a minute unless they have the game already loaded into flash. So, if you want to
+load like King of Fighters 2003 and then you want to load GRO Mark of the Beast
+and you want to switch between them quickly, you either have to have those in the there's like I guess I guess
+there's a cartridge that has like four flash slots, but if you had like fi like five or six different games and they all
+you wouldn't be able to fit them in the flash slots. And so, this is a solution where you can So, I I thought I could
+get things done faster than a minute to load a game. Um, there are also things that as far as
+I know, no other uh flash cartridge for the Neo Geo supports, which is the multiplayer link cable where you can
+connect two machines together and play a game like League Bowling. There's not a lot of games out there, but I figure
+there might end up being more homebrews if there's a easy way to reproduce them.
+Um there there is a port on the Neo SD that looks like a link cable, but as as far
+as I can tell, it doesn't work. Um yeah, so this is the obvious.
+Something is wrong with my brain because who would spend like a year of their life working on this machine. Um but
+it's the reality is it's a good use case for FPGA. There are a lot of challenges compared to what I was doing before that
+really needed FPGA to make this happen. And so I thought, well, what a great project because I learn best with
+projects. Okay, so this is uh what the cartridge
+looks like. Um there are 60 pins. These are your
+regular 2.5 mm or 0.1 inch spacing pins
+on which are you know same as most other cartridges from the 80s, but there's 60 on each side and there's also two
+boards. So that's a total of 240 pins. Not all of those have to be interfaced
+with, but a lot of them do. And then you can see I've outlined here
+uh MPU. That's a very similar microcontroller to the one I used on the
+back pro cartridge. But then I've got an ICE40 FPGA on both boards. I've got a
+whole bunch of these PS RAM chips, pseudoatic RAM. I've got a big array of
+level shifters and a big array of resistors.
+Um, so that's what I just said. Um, the boards are linked by a flat flexible cable which I just had hanging around
+for whatever reason because I was using the same cable uh in my Fairchild uh
+channel F because if you multi if you if you take like 60 pins and divide it down
+by five, you get 12 and there's 11 pins on the Fairchild channel F cable. And it
+just it just fits perfectly. And because and just the way it lines up, it
+it actually even though it's high even though it's five times the pitch, it actually works as a replacement. So I
+took that same cable. It's also the largest off-the-shelf flat flexible cable you can get. So that cable links
+the boards and so the microcontroller is able to talk to the FPGA on the other board through that cable.
+Um, and then there's pseudoatic RAM, which I chose because it's possible to implement this in SD RAM, synchronous
+dynamic RAM, but there's a lot of buses that have to access memory all at once. And the nice thing about the PS RAM is
+that on the outside, it operates just like a traditional static RAM chip from way back when. So, it can serve data
+pretty quick without having to send it a lot of series of commands. It also saved
+me from having to get into the realm of high-speed PCBs, which is something
+that's like over over like 25 or 50 megahertz. So, there are less electrical
+issues that I would have to face by not use not interfacing with SD RAM
+directly, which is which has been helpful for me to be able to just focus more on the software side of things,
+making things work and the firmware and the veril log. Um, I did actually make a SD RAM
+controller, but it didn't it didn't operate at high speed. So, that's kind of why I just said, "Okay, you know, I'm just going to go with PS RAM. I can
+always cost reduce later by by using SD RAM."
+Um, the microcontroller reads data from the SD card. It pipelines that data over
+your 80 bits of datab bus to the FPGAs. The FPGAs play the traffic cop and
+they're able to control the addressing. Um, and I'm able to save pins on the FPGA because the FPGA doesn't directly
+interface with the data. The data lines of the RAM chips are connected to the the CPU, but not to the FPGA. And so,
+I'm able to get away with um I think it's one of the largest uh so-called
+flat pack chips. So, there's flat pack and there's ball grid array. And the ball grid array chips are more expensive
+and they're a lot more expensive to assemble. And so I was able to get away with like one of the larger flat pack
+FPGA chips. Okay, so this is this gets kind of into
+the weeds and very technical what all the Neo Geo buses are. Um it's got a
+main system clock of 24 MHz that gets divided down. The main processor is a Motorola 68000. It's got a Z80
+co-processor, excuse me, Z80 co-processor. So, it's actually a very similar architecture to the Sega
+Genesis, which had a 68000 and a Z80. Um, but it uses them quite a bit
+differently. Um, the Motorola 68000 has a 16 bit data bus. The Z80 has a 8bit
+data bus. There's a uh chip, I believe, which is exclusive to this machine
+called the Yamaha YM2610, which has square wave sound. Uh, it's
+got FM sound and it's also got two channels of ADPCM,
+which I'll I'll say what those initials mean in a second. It's got graphics, an 8bit bus for
+two-dimensional text and tiles, uh, which are used like for a HUD on top of
+the screen, and then it's got sprites or characters, which is a 32-bit bus. And
+so, if you add all those numbers together, you get 80 bits. So, it's not technically an 80-bit machine. I think technically it would be called a 16- bit
+machine, but I have to serve 80 bits of data from the cartridge.
+So, uh, okay. So, these are the individual buses. P stands for program ROM. It's
+got a megabyte of fixed ROM that has to be served, which is like very similar to the Backbit Pro, but then it's got a
+megabyte of of banked memory, which actually serves up to eight megabytes in
+various configurations. And also in that same memory space uh on
+a game like League Bowling it has to I have to emulate a chip called the HD6301
+which is a Hitachi microcontroller which is a clone of like the 681 from Motorola
+and that's something similar to what I worked with like on the Vectrex which is and I guess that's also similar to like
+a Tandy color computer. Um, so some of the challenges I faced in
+uh with this particular bus, the machine needs to see the cartridge there right after starting up. Um, and in
+particular, if you're on a multi-lot machine, it needs to see it there or it just disables the whole slot. So, the
+cartridge has the cartridge has to start up quickly. Um,
+and the thing is my my cartridge takes longer to start up than a typical ROM
+chip. Um, but the solution I went with is that there's a self- test on the Neo
+Geo which actually takes a few seconds and that gives the cartridge plenty of time to start up. I did have an idea to
+put a extra flash chip on there so there's something like ROM that can start up immediately, but that came with
+some other issues which I'll explain in a minute. And so uh another challenge having a
+birectional address bus. So I have very limited pins that I can work with.
+There's an address bus from the Neo Geo coming in which connects to the RAM's
+address bus. Um except if I get a memory request and
+I have to translate that address to something else. Now I've inputed on the address bus what the Neo Geo is
+requesting and then I have to output to the address bus what the RAM wants to interface with. And so doing that
+quickly um I mean it adds cycles and it adds latency. And so that was that
+that's still a little bit tricky because there's the the issue of latency constantly creeps up when changing
+around the FPGA equations which I'll also go into in a second. So then implementing the 6301 processor.
+So I found verarilog implementations of this processor except they didn't quite
+work right because I don't think they exactly reproduced how there's built-in serial IO to this processor and I don't
+think they correctly emulated it because at least from from dropping it in and trying to
+get it to work it didn't work. So there were about 200 instructions
+that I had to translate from 6301 code to Verarilog. Um and I combed through it
+like 10 times just to make sure everything was right. And there are still issues but um they've mostly solved. Um and then lastly on this bus
+there's a lot of signals to control the port access. There's uh output enable
+and write enable which are data being sent one way or the other and those are multiplied by two because there's one to
+specify the high eight bits of the bus and the low eight bits of the bus and so
+deciding like which of these I could cut out became kind of an issue because they you can cut out a few but then there's
+tradeoffs so that was a challenge. Uh, the Z80
+uses a bus called the MR ROM, which I guess stands for music. It It's there to
+interface with the Yamaha sound chip, and that's kind of all it does on the Neo Geo, and it's got some banked
+memory. Um, on the Sega Genesis, the Z80 is used
+for frequently for co- um for co-processing. It's not typically the
+case on the dojo just because of the way it interfaces. There's like a 8bit bus between them, but I don't know, just the
+way the interrupts work is just not super convenient to try to read data off it.
+Um, but here's a challenge related to the program bus. If I tried to start the
+machine with a flash chip that's going to the program bus, then the machine can
+start right away, but the sound will cut out because the system expects both the
+program bus and the the music bus to be active at the same time. And if they're
+not, the Z80 can go into a crash state where it's like looping through RAM and
+interrupts are turned off and it just it's just stuck. And so I kind of I decided again against
+having that extra flash chip to have instant startup for the program ROM because it created more problems uh
+crashing the music chip and there is the obvious solution of just enabling hardware tests to get around that.
+So then the sound chip uses ADPCM which stands for adaptive differential uh
+pulse code modulation. There's two buses because there's two kinds of ADPCM it
+uses. There are six channels of 18 kilhertz sound that are it's 12
+bits, but it's it's some kind of proprietary compression algorithm algorithm that I didn't have to deal
+with directly. Um, but those 12 bits are transferred on 8bit bus. And then the
+other channel is variable. It can go from almost nothing to up to 55 kHz and
+it's 16 bit. So it's it's higher quality. It's used for playing like background music whereas other ch the
+six channels are used for playing sound effects. Um the challenge with these buses is
+that they're multipplexed. So there's three types of data that go across the bus. So there's a high address, a low
+address, so like the upper eight bits of the address, lower eight bits of the address, and then data. And they're all
+on the same eight butt eight, excuse me. See, I can't even talk right when I'm talking about this. Um, they're all on
+the same bus. So, so data is going one way, data is going the other way, and there are these control signals that
+tell you which way it has to go. So latency is really critical and there's
+like changing the bus direction can can get pretty tricky just to get it just
+right and on time. Um a challenge with this is uh accessing
+the PS RAM. One of these audio channels the latency translates to about like
+three CPU cycles. The other one it's longer, but then it's so long the PS
+RAM, if you tell it to output data for over about four, wait, I guess four
+microsconds, then it'll just die and stop working. So, so latency is an issue, but also
+having something held too long is an issue. the MPX signal. So that stands
+for multiplex. That signal comes from the Yamaha chip and tells you if it's
+sending you the address, if it's sending the address or it's receiving data. And
+that came with some challenges because it's a dual edge clock, which doesn't sound that scary, but for whatever
+reason. So a a normal clock, you'll have one. So a clock is like a
+square wave, and you'll have one edge that tells you when you should be doing something. But this is a dual-edge
+clock. And I guess for whatever reason, because both those edges have to be
+sharp edges, the there can be a bit of a high current um used from the chip. And
+so at least in one version of the Neo Geo hardware, they put some inductors on on those lines to reduce current draw
+when the signal changes, and then that creates some distortion on the line. So, long story short, I had to add some
+resistors on those lines to reduce the ringing and distortion because that was creating some issues.
+Okay, next bus, the fix layer. Um, this just specifies uh the graphics for the
+characters that are drawn on the screen or the HUD. And the tricky part about this bus
+is that there the the actual screen the virtual screen is bigger than the
+physical screen. So there are hidden characters on the edges of the screen
+that can be used for banking. Um and that extends the ability to have like up
+to half a megabyte of memory addressed by the bus instead of like a quarter that.
+Um, a challenge was to be able to draw a loading bar on the screen while it's
+loading data into the memory on this bus meant that I had to add some extra
+hardware uh like a multipplexer so that if it's loading a game, it uses uh it
+serves characters that are internal to the FPGA and so it avoids having to
+access RAM while it's loading data into RAM. Okay. And I think this is the last bus
+I'll be talking about, the character bus. It's a 32-bit bus. And it has to
+access it 16 times to generate a tile that's 16 by 16.
+And I it's four bit color. So that's 16 colors uh out of a much larger palette.
+And oh, so a challenge with this was that I had to put eight PS RAM chips because to
+get the amount of uh memory that's used by the biggest Neo Geo cartridge, you
+need 64 megabytes and the PS RAM chips uh tend to max out around 8 megabytes.
+So that's why I had like I have a lot of PS RAM chips.
+Um so obviously it's much more complex than the Backbit Pro cartridge. Um, a
+big challenge was just deciding what signals to be cut because I couldn't based on the the pin counts of the FPGA
+and the CPU. Everything's maxed out and I just had to decide what signals are
+more important than others. What signals can I infer using other signals? What signals are just not that important? And
+so that that's been a constant challenge. Reducing latency is a really big issue
+particularly because so there are different size versions of the MVS
+system. There's a version that that you can put one cartridge into and then there's two there's two slot, four slot,
+six slot. So you could put six cartridges into a six slot machine. But those machines are much bigger. They
+have a lot more hardware because they have to throttle the bus for every cartridge. So you figure there's 80 pins
+of data that are all that are all multipplexed between six slots. And so
+there there's a lot of hardware in there. It creates additional latency. It makes the power of the machine a little
+bit less stable. And so that means I have to optimize my FPGA qu uh equations
+quite a bit more. And the issue that that I've been dealing with over the last week, it's
+called metastability. That's when a signal going into the FPGA has not settled on zero or one. It's
+kind of in between. And you'd think, okay, well, you know, it'll just go to
+one to the other and then you can process your equations. But that's not
+exactly how it works because in the FPGA, if the input is not a zero or one, the output of that gate is also not a
+zero or one. And so it can that unknown state can propagate down a series of
+gates. And so then the latency between all those gates. And if you add all that stuff up, it can add up to quite a bit
+of like a cascading problem of latency. And
+that it was it's really tricky to understand and it's probably even trickier to to optimize against. But uh
+but I'm learning fast. And okay, so what's next? Um, I have to
+produce an injection molded case. Um, part of that is cuz I am kind of sick of
+being a 3D printing factory. Um, and the other part of that is that a 3D printed Neo Geo cartridge is
+possible, but it doesn't look that g it doesn't look that great. It's a bit rougher on the edges. And also I like to
+use ABS and ABS warps quite a bit. Um the cartridges are around like six by
+eight inches. Um the challenge with injection molding is a very high upfront cost. Uh over
+time it's probably not that much more expensive than 3D printing, but everything has to be perfect the first
+time. So I've spent the last couple months doing a lot of perfecting and I should be able to start that process by
+the end of the month. Um, and then I want to get the PC board final because
+once I send that out to however many hundred customers get the cartridge, I
+don't want them all to have to return that and start all over. Um, so I'm
+working out the remaining issues. It's amazing how beta testers can find things like instantly that you didn't see. Um,
+and then a friend was able to let me borrow a six slot Neo Geo which revealed that it wasn't the latency wasn't good
+enough to work on that. So, I've been working on that and it's it's getting better. It's almost there. And by almost
+there means I'll I want to ship the cartridge in April because I already have pre-orders.
+Um, so I might go through one maybe two more PC board revisions just to get everything perfect.
+Um, and I'll probably cave to peer pressure and make an AES version of this
+because there seems to be a lot of demand. Um, and the good thing about the AES is it's basically the same hardware.
+It's just, um, the character bus, the sprite bus. Um, there is essentially a
+chip that's inside the MVS hardware that is inside the AES cartridge. So, there's
+just a tiny little bit more processing that has to happen.
+Um, and so that's basically all I have. Now, I'm open for questions.
+Anybody? Yes. How many um prototype boards have you done at this point?
+So I think for the So there's two boards. There's the program board and the character board. The program board
+has the P A and B buses. Um the character board has the the Z80
+bus and the graphics buses. So the graphics board, the character board was easier. That's maybe like three, four,
+five revisions. the program bust. I'm I've been calling the board's RC uh
+since January and so I'm at RC4. It'll probably go to RC 5 or six before it's
+final. Um but before that there was I don't know somewhere between five and 10
+boards. So there's a lot a lot of tweaking. Um and I mean that's why I've been working on this for almost a year.
+I mean, I only started working on it around maybe like May last year, but the
+process of getting a new board is like it it's pretty quick, but the total turnaround between like diagnosing and
+making changes and sending the new board is probably about a month. So, but yeah, I I have a big st I was thinking if I
+should go through the stack and like take pictures of each, but but yeah, I literally have a box about this big of
+of all my old boards. Any other questions? Yes.
+Mhm. Um, sort of. So, I make a a chip tester
+and I'm currently working on a new version. Um, but I made this product. I
+called it the corn bit because on the Comeer 64 there's a chip called the kernel and I just thought the because
+the chip had extra pins on the top and bottom uh it sort of looked like a corn cob. So I called it the corn bit. Um but
+that was a flash memory chip on a chip with a few extra pins that could be
+plugged in the chip tester to program it. And that was from SD card. So, it's
+almost USB. Um, but yeah, it's not a it's not a big
+focus right now because it's it's a lot of effort to build those things.
+Anybody else? Yes. What's after? What's what what's after?
+Oh god. Um, I don't know. I I uh the
+focus is going to be in Neo. Oh, well, I mean, oh, this guy wants Virtual Boy.
+Um, the chip tester. So, I'm I have my so-called version three of the chip
+tester. Um, which compared to version two, it adds level shifters. It adds, um,
+what else? Analog inputs. Um, it adds a drop in module for being able to test
+chips, different voltages. So that's probably like my main focus after Neo
+Geo is just finishing version three. Like the hardware is done. I just need to give it a case and do some testing.
+Um but yeah, I mean like every project I like to do, I like to learn. Um so I'm
+probably not going to be selling Neo G Neo Geo cartridges forever and I'm probably going to want to do something else afterwards. So I'm I'm always open
+to ideas. Yes. How do you know when to uh start
+taking pre-orders? Sounds like you started taking them even before all the
+Right. So, I started taking pre-orders in January and I had been dragging my heels for a long time because I wanted
+to get the hardware as perfect as possible. Um, but I started taking pre-orders um
+partially to fund the pro I mean mainly to fund the product. uh because I'd
+already invested a lot of time and money in it and my other products seem to be
+selling a little bit less. So, I did need money to support continuing working
+on it. And I also need money to start the expensive processes like the
+injection molding um and to pre-order parts uh just in case there's a shortage on the parts.
+And so I I really dragged my heels as long as I could uh where I was just like, "Okay, I really have to move
+forward on this." And the pressure actually really helps me to to get things final. Like, you know, once I
+announced pre-orders, I realized there's a lot of people who could help me beta test. And then, um, because I have
+pre-orders now, I can make a whole bunch of beta cartridges that would normally be like, "Oh, I don't want to invest in
+this." But, you know, now I can. So yeah, I mean really like that's like my
+policy is like to drag my heels as long as I possibly can before I'm like, "Okay, I really need,
+you know, a little bit of kickstarting here to finish the project."
+Yes. Do you ever prefer any? Um I the one I'm using on this is Texas
+Instruments. Um yeah, I go to Texas Instruments a lot for various chips.
+They kind of I don't know, they're kind of like the gold standard with something that just works well and is also really
+cheap. Um, but the level shifters I'm using, they um
+you have to specify the bus direction. I know there's some where the bus direction is like automated and a bunch
+of told me a bunch of people told me like don't use those because they're not as reliable. Um, yeah. The main trouble
+with them is that the the time it takes them to figure out which way they're driving just significantly increases latency.
+Yeah. I mean latency is everything because there's latency at every stage. There's latency at the level shifters.
+There's latency in the FPGA latency and it's like all that adds up.
+And um you could you could compare that to the architecture in the original cartridge,
+which is typically like a custom gate array inside the original cartridge, which I'm kind of replicating. But I'm
+also actually adding a lot of parts because that original gate array would be 5 volt native and it wouldn't have to
+talk to a bunch of other chips. Like everything's on that one chip, you know, and it's they designed the silicone to
+do exactly what they wanted. Whereas I'm using off-the-shelf parts. I'm not designing my own silicone yet. I would
+say long term that's probably that's probably my biggest ambition long term is you know someday I'll make maybe make
+my own silicone. So that might be fun. I'm curious about how much reverse
+engineering you have to make versus how much documentation you will find. Um there's there's there's a heck of a
+lot of documentation on neoev.org. There's a few hardto- read uh PDF scans
+of old Neo Geo schematics and documentation. So, I I've used everything I can, but like having like
+having this active community of people who want to share what they've discovered about the machine has been
+really helpful, but um it's also it also takes a bit of of
+groing to decipher that. So, I mean, like there were a bunch of border\d{1,2}:\d{2}\n revisions I made just to support titles
+that have certain banking implementations where it wasn't obvious right away even
+with even with all the the wikis out there. And so, I had to go through a
+bunch of border revisions to figure, oh, I actually need this pin and I actually need this other pin.
+Um, and I've also relied a lot on like um MAMEim uh MAME emulation source code which has
+been really helpful for like um the encrypted ROMs because if if maim can play it then it's
+you know it's been deciphered. Um but there's a couple situations where
+even MAMEim doesn't quite uh get it perfect because MIME can change the
+hardware. I can't change the hardware that it's plugged into. And so that that leads to more like what a mister would
+do. Yes. Have you ever considered working in the Naomi system cartridges?
+What is that? Also the arcade system that runs cartridges or they have a GD ROM which
+is a DVD player that lo from DVD into system.
+Uh not yet. It's similar to the um one of the other
+gener
+the the nice thing about the Neo Geo is that it's it's like a '9s system, but I
+figure the hard like the hardware probably was designed a few years before
+the system came out, at least much of the hardware. Um, so it's it's a little
+bit evolved from the 8-bit system. So, you know, I'm kind of working my way through the eras slowly.
+I mean, it's really it's really nice having those large dual inline package chips because that's that's something I can relate to right now.
+Any other questions? Or I think we actually I guess we're we're out of time. So, thank you for coming and I'll
+be here all weekend. [Applause]
