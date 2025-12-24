@@ -8,20 +8,137 @@ A comprehensive technical reference for the Neo Geo MVS cartridge interface, cov
 
 ## Table of Contents
 
-1. [Physical Specifications](#physical-specifications)
-2. [Board Structure](#board-structure)
-3. [System Clocks](#system-clocks)
-4. [ROM Types Overview](#rom-types-overview)
-5. [P-ROM Bus (Program)](#p-rom-bus-program)
-6. [C-ROM Bus (Sprites)](#c-rom-bus-sprites)
-7. [S-ROM Bus (Fix Layer)](#s-rom-bus-fix-layer)
-8. [M-ROM Bus (Z80)](#m-rom-bus-z80)
-9. [V-ROM Bus (Audio)](#v-rom-bus-audio)
-10. [Display Timing](#display-timing)
-11. [Sprite Rendering Pipeline](#sprite-rendering-pipeline)
-12. [Cartridge Pinout](#cartridge-pinout)
-13. [Key Chips Reference](#key-chips-reference)
-14. [Voltage and Electrical](#voltage-and-electrical)
+1. [Signal Naming Convention](#signal-naming-convention)
+2. [Physical Specifications](#physical-specifications)
+3. [Board Structure](#board-structure)
+4. [System Clocks](#system-clocks)
+5. [ROM Types Overview](#rom-types-overview)
+6. [P-ROM Bus (Program)](#p-rom-bus-program)
+7. [C-ROM Bus (Sprites)](#c-rom-bus-sprites)
+8. [S-ROM Bus (Fix Layer)](#s-rom-bus-fix-layer)
+9. [M-ROM Bus (Z80)](#m-rom-bus-z80)
+10. [V-ROM Bus (Audio)](#v-rom-bus-audio)
+11. [Display Timing](#display-timing)
+12. [Sprite Rendering Pipeline](#sprite-rendering-pipeline)
+13. [Cartridge Pinout](#cartridge-pinout)
+14. [Key Chips Reference](#key-chips-reference)
+15. [Voltage and Electrical](#voltage-and-electrical)
+
+---
+
+## Signal Naming Convention
+
+Neo Geo signal names follow a consistent pattern: **PREFIX + NUMBER/SUFFIX**
+
+### Prefix = Subsystem
+
+| Prefix | Meaning | Subsystem |
+|--------|---------|-----------|
+| **D** | Data | 68000 CPU data bus |
+| **A** | Address | 68000 CPU address bus |
+| **P** | P-bus | Internal graphics multiplexed bus |
+| **CR** | C-ROM | Sprite graphics data |
+| **FIXD** | Fix Data | Fix layer (S-ROM) data |
+| **SD** | Sound | Z80/Audio subsystem |
+| **SDA** | Sound Data Address | Z80 address bus |
+| **SDD** | Sound Data Data | Z80 data bus |
+| **SDRA** | Sound ADPCM-A | ADPCM channel A address/data |
+| **SDPA** | Sound ADPCM-B | ADPCM channel B address/data |
+
+### Suffix = Function or Bit Number
+
+| Suffix | Meaning | Example |
+|--------|---------|---------|
+| **0-N** | Bit number | D0-D15 = 16-bit data bus |
+| **OE** | Output Enable | /ROMOE |
+| **RD** | Read strobe | /SDRD0 |
+| **WR** | Write strobe | /PORTWE |
+| **CS** | Chip Select | SLOTCS |
+| **B** | Active low or inverted | PCK1B |
+| **MRD** | Memory Read | /SDMRD |
+| **MPX** | Multiplex control | SDRMPX |
+| **L/U** | Lower/Upper byte | /ROMOEL, /ROMOEU |
+
+### Signal Groups
+
+**68000 CPU:**
+```
+D0-D15      Data bus (16 bits)
+A1-A19      Address bus (A0 implied by byte strobes)
+/ROMOE      ROM Output Enable
+/ROMOEL     ROM Output Enable Lower byte
+/ROMOEU     ROM Output Enable Upper byte
+R/W         Read/Write direction
+AS          Address Strobe
+```
+
+**P-Bus (Graphics):**
+```
+P0-P23      24-bit multiplexed bus (tile numbers, palette, attributes)
+```
+
+**C-ROM (Sprites):**
+```
+CR0-CR31    32-bit sprite data
+            CR0-CR15  = odd ROMs (C1, C3, C5...) bitplanes 0,1
+            CR16-CR31 = even ROMs (C2, C4, C6...) bitplanes 2,3
+CA4         Extra C-ROM address bit
+PCK1B       Pixel Clock 1 Bar - latches C-ROM address from P-bus
+EVEN        Pixel pair swap control
+H           Horizontal flip
+LOAD        Serializer load signal
+```
+
+**S-ROM (Fix Layer):**
+```
+FIXD0-FIXD7   8-bit fix layer data
+PCK2B         Pixel Clock 2 Bar - latches S-ROM address
+2H1           S-ROM address bit 3
+```
+
+**Z80 / Sound:**
+```
+SDA0-SDA15    Z80 Address bus (16 bits)
+SDD0-SDD7     Z80 Data bus (8 bits)
+/SDMRD        Sound Memory Read
+/SDROM        Sound ROM chip select
+```
+
+**ADPCM Audio:**
+```
+SDRA0-SDRA23    ADPCM-A ROM address (low bits multiplexed, high bits direct)
+SDRAD0-SDRAD7   ADPCM-A ROM data
+/SDRD0          ADPCM-A Read strobe
+
+SDPA8-SDPA11    ADPCM-B ROM address (high bits only, low bits multiplexed)
+SDPAD0-SDPAD7   ADPCM-B ROM data
+/SDRD1          ADPCM-B Read strobe
+```
+
+**Clocks:**
+```
+24M       Master clock (24 MHz)
+12M       CPU/video clock (24÷2 = 12 MHz)
+8M        Audio clock (24÷3 = 8 MHz)
+6M        Pixel output clock (24÷4 = 6 MHz)
+4M        Z80 clock (24÷6 = 4 MHz)
+```
+
+### Quick Reference
+
+```
+D = 68000 Data          A = 68000 Address
+P = Graphics P-bus      CR = C-ROM (sprites)
+FIXD = S-ROM (fix)      SD = Sound/Z80
+
+SDA = Z80 Address       SDD = Z80 Data
+SDRA = ADPCM-A Addr     SDRAD = ADPCM-A Data
+SDPA = ADPCM-B Addr     SDPAD = ADPCM-B Data
+
+PCK1B = C-ROM clock     PCK2B = S-ROM clock
+/xxxOE = Output Enable  /xxxRD = Read strobe
+B suffix = active low   L/U suffix = lower/upper byte
+```
 
 ---
 
