@@ -67,9 +67,10 @@ neopico-cart/
 │   ├── test_ngfc_converter.py
 │   └── README.md            # Format specification
 ├── docs/
+│   ├── architecture-three-pico.md         # PRIMARY: 3× RP2350 architecture design
 │   ├── neogeo-mvs-cartridge-reference.md  # Hardware reference (pinout, timing, buses)
 │   ├── neogeo-flashcart-research.md       # Flash cart analysis, BackBit/MiSTer
-│   ├── neopico-cart-rp2350-feasibility.md # RP2350-specific feasibility study
+│   ├── neopico-cart-rp2350-feasibility.md # RP2350 feasibility study
 │   └── transcript.txt                     # Evie's VCF SoCal 2025 talk transcript
 └── CLAUDE.md               # This file
 ```
@@ -77,8 +78,9 @@ neopico-cart/
 ## Key Resources
 
 ### Project Docs (READ THESE FIRST)
-- `docs/neogeo-mvs-cartridge-reference.md` - **MVS hardware reference** (pinout, timing, buses)
-- `docs/neopico-cart-rp2350-feasibility.md` - **RP2350 architecture and feasibility**
+- `docs/architecture-three-pico.md` - **PRIMARY: 3× RP2350 architecture** (pin allocation, BOM, data flow)
+- `docs/neogeo-mvs-cartridge-reference.md` - MVS hardware reference (pinout, timing, buses)
+- `docs/neopico-cart-rp2350-feasibility.md` - RP2350 feasibility analysis
 - `docs/neogeo-flashcart-research.md` - Flash cart analysis, BackBit/MiSTer details
 - `docs/transcript.txt` - BackBit architecture source (Evie's VCF talk)
 - `ngfc/README.md` - NGFC format specification

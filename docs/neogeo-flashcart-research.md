@@ -571,6 +571,20 @@ Support only games up to 32 MB C-ROM (most pre-1996 titles):
 
 ---
 
+## NeoPico-Cart Implementation
+
+Based on this research, a concrete architecture has been designed for the NeoPico-Cart project:
+
+**See: `docs/architecture-three-pico.md`**
+
+The "Triple Pico" design uses 3× RP2350 microcontrollers instead of FPGAs:
+- PSRAM connects directly to Neo Geo data buses (like BackBit)
+- Picos handle address translation only (like BackBit's FPGAs)
+- .ngfc format eliminates runtime data transformation
+- Estimated BOM: ~$100
+
+---
+
 ## Recommended Next Steps
 
 ### Phase 1: Research & Planning
@@ -862,6 +876,14 @@ A conversion tool would transform standard .neo or MAME ROM sets into this optim
 
 ## References
 
+### Project Documentation
+- `docs/architecture-three-pico.md` — NeoPico-Cart implementation design
+- `docs/neogeo-mvs-cartridge-reference.md` — MVS hardware pinout and timing
+- `docs/neopico-cart-rp2350-feasibility.md` — RP2350 feasibility study
+- `docs/transcript.txt` — VCF SoCal 2025 Talk transcript (Evie Salomon, BackBit)
+- `ngfc/README.md` — NGFC format specification
+
+### External Resources
 - [NeoGeo Development Wiki](https://wiki.neogeodev.org/)
 - [BackBit Store](https://store.backbit.io/product/backbit-platinum-mvs/)
 - [MiSTer Neo Geo Core](https://github.com/MiSTer-devel/NeoGeo_MiSTer)
@@ -870,7 +892,6 @@ A conversion tool would transform standard .neo or MAME ROM sets into this optim
 - [TerraOnion NeoBuilder Guide](https://wiki.terraonion.com/index.php/Neobuilder_Guide)
 - [neosdconv tool](https://github.com/city41/neosdconv)
 - Alliance Memory SRAM Datasheets (AS6C8008 series)
-- VCF SoCal 2025 Talk (Evie Salomon, BackBit) — transcript available at `docs/transcript.txt`
 
 ---
 

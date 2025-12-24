@@ -488,7 +488,7 @@ PicoGUS proves RP2040/RP2350 can handle real-time bus interfacing with external 
 
 ## Conclusion
 
-A dual-RP2350 (or even single RP2350B) Neo Geo flash cartridge appears **feasible** based on:
+A multi-RP2350 Neo Geo flash cartridge appears **feasible** based on:
 
 1. The cache architecture decouples backing store timing from bus response timing
 2. RP2350's 520KB SRAM provides ample cache space (500× more than MiSTer's BRAM)
@@ -499,17 +499,32 @@ A dual-RP2350 (or even single RP2350B) Neo Geo flash cartridge appears **feasibl
 
 The main risks:
 - Uncharted territory for PIO-based memory controllers
-- Pin count constraints may require dual-Pico design
+- Pin count constraints require multi-Pico design (3× RP2350)
 - Six-slot MVS machines have tighter timing (may need optimization)
 
 But the physics work out, BackBit proves the concept, and the potential cost/simplicity benefits justify experimentation.
+
+## Concrete Implementation
+
+Based on this feasibility analysis, a concrete architecture has been designed:
+
+**See: `docs/architecture-three-pico.md`**
+
+The "Triple Pico" architecture uses:
+- **Pico A (Master):** SD card, menu, P-ROM, V-ROM
+- **Pico B (C-ROM):** Timing-critical sprite graphics
+- **Pico C (S/M-ROM):** Fix layer and Z80 program
+
+This design follows BackBit's approach (PSRAM direct to Neo Geo, controller handles addressing only) but replaces the FPGA with RP2350 PIO.
 
 ---
 
 ## References
 
 ### Project Documentation
-- `docs/neogeo-flashcart-research.md` — Comprehensive Neo Geo hardware analysis
+- `docs/architecture-three-pico.md` — **Concrete implementation design**
+- `docs/neogeo-mvs-cartridge-reference.md` — MVS hardware reference (pinout, timing)
+- `docs/neogeo-flashcart-research.md` — Flash cart analysis, BackBit/MiSTer
 - `docs/transcript.txt` — Evie Salomon's VCF SoCal 2025 presentation transcript
 - `ngfc/README.md` — NGFC format specification and converter tool
 
