@@ -8,7 +8,7 @@ This tool implements the data transformation algorithms used by the MiSTer FPGA 
 
 ## Background
 
-Neo Geo hardware expects sprite (C-ROM) data on a tight timing budget (~40-60ns). Standard SDRAM has ~60-90ns random access latency, making it seemingly unsuitable. However, SDRAM excels at **burst reads** where multiple sequential words are read efficiently.
+Neo Geo hardware expects sprite (C-ROM) data within <250ns (~8 mclk window). While PSRAM can serve this directly (as BackBit proves), SDRAM burst reads offer a cost-effective alternative by reading multiple sequential words efficiently.
 
 The MiSTer Neo Geo core solved this by:
 1. **Reorganizing ROM data** during loading so that SDRAM bursts return data in the exact order hardware expects

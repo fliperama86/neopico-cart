@@ -56,7 +56,7 @@ An open-source Neo Geo MVS/AES flash cartridge using SDRAM instead of expensive 
 
 **FPGA** handles timing-critical tasks requiring nanosecond precision:
 - SDRAM controller with 4-bank interleaving
-- Neo Geo bus interface (~40-60ns response for C-ROM)
+- Neo Geo bus interface (<250ns response for C-ROM)
 - Real-time data serving during gameplay
 
 Microcontrollers cannot serve real-time bus data due to timing constraints. Only FPGA + fast memory can meet these requirements. MiSTer proves SDRAM works with proper data reorganization and bank interleaving.

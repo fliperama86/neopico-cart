@@ -1,3 +1,4 @@
+.DS_Store
 # Prerequisites
 *.d
 
@@ -57,3 +58,7 @@ ngfc/__pycache__/
 roms
 *.ngfc
 .obsidian/
+neopico-cart-backups/
+devkit-backups/
+*.bak
+fp-info-cache

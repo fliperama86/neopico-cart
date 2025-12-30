@@ -30,10 +30,11 @@ From the [NeoGeo Development Wiki](https://wiki.neogeodev.org/):
 - **C-ROM rendering**: 16 mclk per sprite tile line = 666.7 ns total
 - **C-ROM reads per tile**: 2 reads per 16-pixel line = 333.3 ns per access
 - **PCK1B latch frequency**: 1.5 MHz (55 ns low, 610 ns high)
-- **NEO-ZMC2 data latch**: 12 MHz clock, data must be valid within ~40-60 ns after address stable
+- **C-ROM access requirement**: <250 ns (~8 mclk window, per NeoGeo Dev Wiki)
+- **NEO-ZMC2 serializer**: 12 MHz clock (internal timing, not the C-ROM requirement)
 - **Minimum VRAM access**: ~45 ns (1.5 mclk = 62.5 ns slots)
 
-**Key insight**: The C-ROM bus is the most timing-critical component. Data must be available within approximately **40-60 ns** of the address being latched.
+**Key insight**: The C-ROM bus requires data within **<250ns** of address latch. This is comfortable for PSRAM (55ns access) as BackBit demonstrates.
 
 ---
 
@@ -445,7 +446,7 @@ The RP2350 runs at 150 MHz (6.67 ns/cycle). A C-ROM access requires:
 - Fetch data from memory
 - Place data on bus
 
-Even with PIO, this would take dozens of cycles — far too slow for the ~40-60 ns requirement.
+With the actual <250ns requirement (not the previously assumed ~40-60ns), PSRAM-based solutions become viable. The RP2350's PIO can handle address translation while PSRAM serves data directly to the Neo Geo bus, similar to BackBit's architecture.
 
 ### RP2350 Advantages Over STM32
 

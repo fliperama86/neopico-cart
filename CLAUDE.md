@@ -12,7 +12,7 @@ This is a feasibility study and eventual implementation for a Neo Geo MVS/AES fl
 
 ### Neo Geo Hardware Requirements
 
-- **C-ROM timing is critical**: Data must be available within ~40-60ns of address latch
+- **C-ROM timing is critical**: Data must be available within <250ns (~8 mclk window)
 - **Total ROM for largest games**: ~96-128 MB (Garou: Mark of the Wolves is ~86 MB)
 - **80 bits of data buses**: P (16-bit), C (32-bit), S (8-bit), M (8-bit), V (16-bit)
 
@@ -95,5 +95,6 @@ neopico-cart/
 
 1. **READ ALL docs/*.md files** at the start of each session
 2. BackBit uses **PSRAM, not 10ns SRAM** — this was corrected Dec 2024
-3. The `.ngfc` format is critical — it eliminates runtime transformation
-4. Focus on **RP2350-only** solutions unless user asks otherwise
+3. **C-ROM timing is <250ns (~8 mclk), NOT ~40-60ns** — corrected Dec 2024 per NeoGeo Dev Wiki
+4. The `.ngfc` format is critical — it eliminates runtime transformation
+5. Focus on **RP2350-only** solutions unless user asks otherwise

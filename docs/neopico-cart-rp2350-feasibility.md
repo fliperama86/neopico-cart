@@ -20,12 +20,15 @@ The Neo Geo's C-ROM (sprite graphics) bus has strict timing requirements:
 
 | Parameter | Value |
 |-----------|-------|
-| Data valid window | ~40-60ns after address stable |
+| Data valid window | <250ns (~8 mclk window) |
 | PCK1B period | ~666ns (16 mclk at 24MHz) |
+| C-ROM reads per PCK1B | 2 reads (8 mclk/~333ns each) |
 | Worst-case tiles per scanline | ~96 |
 | Total C-ROM size (largest games) | ~86MB (Garou: Mark of the Wolves) |
 
 The question: **Can an RP2350 serve data fast enough?**
+
+**Note:** Earlier versions of this document incorrectly stated ~40-60ns. The actual requirement per the NeoGeo Dev Wiki is <250ns, which makes direct PSRAM serving (like BackBit) viable.
 
 ---
 
@@ -159,19 +162,19 @@ Timeline for one scanline (~64μs total):
 │  H-Blank (~15μs)    │  Active rendering (~49μs)            │
 │                     │                                      │
 │  LSPC evaluates     │  PCK1B fires, needs data             │
-│  sprites            │  within ~40ns                        │
+│  sprites            │  within <250ns                       │
 │                     │                                      │
-│  Prefetch tiles     │  Served instantly from cache         │
+│  Prefetch tiles     │  Served from cache or PSRAM          │
 │  from SDRAM→BRAM    │                                      │
 └─────────────────────┴──────────────────────────────────────┘
 
 Prefetch math:
-- 96 tiles × ~50ns each = 4,800ns needed
-- 15,000ns available
+- 96 tiles × ~50ns SDRAM = 4,800ns needed
+- 15,000ns H-blank available
 - Margin: 3× headroom
 ```
 
-**Key insight**: SDRAM timing doesn't matter during active rendering because data is already in fast cache.
+**Key insight**: With <250ns requirement, PSRAM (55ns access) can serve directly. Cache architecture still useful for simplifying logic and handling edge cases.
 
 ---
 
@@ -197,7 +200,7 @@ More cache = more tolerance for SDRAM timing variation.
 | Domain | Timing Requirement | What Handles It |
 |--------|-------------------|-----------------|
 | SDRAM access | Relaxed (~15μs window) | PIO + DMA, background |
-| Neo Geo bus | Critical (~40ns) | PIO from internal SRAM |
+| Neo Geo bus | <250ns (comfortable with PSRAM) | PIO from internal SRAM or direct PSRAM |
 
 ### Single RP2350B Design (If Pins Allow)
 
@@ -451,7 +454,7 @@ PicoGUS proves RP2040/RP2350 can handle real-time bus interfacing with external 
 3. **Prototype Neo Geo bus sniffer**
    - Capture actual PCK1B timing on real hardware
    - Measure address-to-data timing requirements
-   - Validate the 40-60ns assumption
+   - Validate <250ns requirement and measure actual margins
 
 ### Phase 2: Proof of Concept
 

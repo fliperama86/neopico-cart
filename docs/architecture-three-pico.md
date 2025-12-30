@@ -100,15 +100,15 @@ This document describes the "Triple Pico" architecture for the NeoPico-Cart — 
 ### Pico B: C-ROM Controller (CHA Board)
 
 **Primary Responsibilities:**
-- C-ROM bus address control (most timing-critical)
+- C-ROM bus address control (most complex timing path)
 - PCK1B signal handling
 - P-bus address capture
 - 8× PSRAM chip select management
 
 **Timing Requirements:**
-- Must respond to PCK1B within address setup time
-- Target: Address valid within ~20ns of PCK1B edge
-- At 300MHz overclock: ~6 PIO cycles available
+- <250ns from PCK1B edge to data valid
+- Target: PSRAM address valid within ~20ns of PCK1B edge for fast access
+- At 300MHz overclock: ~6 PIO cycles for address translation
 
 | Resource | Allocation |
 |----------|------------|
@@ -289,7 +289,7 @@ C-ROM Access (per tile):
 | Data valid on bus | - | Direct connection |
 | **Total** | **~93ns** | |
 
-**Available time:** PCK1B period = 666ns, but data needed within ~250ns (7 mclk).
+**Available time:** PCK1B period = 666ns, but data needed within <250ns (8 mclk window = ~333ns).
 
 **Margin:** ~157ns — comfortable.
 
