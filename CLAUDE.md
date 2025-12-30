@@ -81,6 +81,7 @@ neopico-cart/
 
 - `docs/architecture-three-pico.md` - **PRIMARY: 3× RP2350 architecture** (pin allocation, BOM, data flow)
 - `docs/neogeo-mvs-cartridge-reference.md` - MVS hardware reference (pinout, timing, buses)
+- `docs/parallel-memory-bill-of-materials.md` - BOM for Parallel Direct Access architecture
 - `docs/neopico-cart-rp2350-feasibility.md` - RP2350 feasibility analysis
 - `docs/neogeo-flashcart-research.md` - Flash cart analysis, BackBit/MiSTer details
 - `docs/transcript.txt` - BackBit architecture source (Evie's VCF talk)
