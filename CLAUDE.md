@@ -78,6 +78,7 @@ neopico-cart/
 ## Key Resources
 
 ### Project Docs (READ THESE FIRST)
+
 - `docs/architecture-three-pico.md` - **PRIMARY: 3× RP2350 architecture** (pin allocation, BOM, data flow)
 - `docs/neogeo-mvs-cartridge-reference.md` - MVS hardware reference (pinout, timing, buses)
 - `docs/neopico-cart-rp2350-feasibility.md` - RP2350 feasibility analysis
@@ -86,6 +87,7 @@ neopico-cart/
 - `ngfc/README.md` - NGFC format specification
 
 ### External Resources
+
 - [NeoGeo Development Wiki](https://wiki.neogeodev.org/)
 - [MiSTer NeoGeo Core](https://github.com/MiSTer-devel/NeoGeo_MiSTer)
 - [PicoGUS Project](https://github.com/polpo/picogus) - RP2040 real-time bus example
@@ -93,8 +95,10 @@ neopico-cart/
 
 ## Important Notes for Claude
 
-1. **READ ALL docs/*.md files** at the start of each session
-2. BackBit uses **PSRAM, not 10ns SRAM** — this was corrected Dec 2024
-3. **C-ROM timing is <250ns (~8 mclk), NOT ~40-60ns** — corrected Dec 2024 per NeoGeo Dev Wiki
-4. The `.ngfc` format is critical — it eliminates runtime transformation
-5. Focus on **RP2350-only** solutions unless user asks otherwise
+1. **READ ALL docs/\*.md files** at the start of each session
+2. **ALWAYS fact-check technical claims against:**
+   - `docs/neogeo-mvs-cartridge-reference.md` — Hardware specs (SOURCE OF TRUTH for Neo Geo hardware)
+3. BackBit uses **PSRAM, not 10ns SRAM** — this was corrected Dec 2024
+4. **C-ROM timing is <250ns (~8 mclk), NOT ~40-60ns** — corrected Dec 2024 per NeoGeo Dev Wiki
+5. The `.ngfc` format is critical — it eliminates runtime transformation
+6. Focus on **RP2350-only** solutions unless user asks otherwise

@@ -18,8 +18,9 @@ A comprehensive technical reference for the Neo Geo MVS cartridge interface, cov
 8. [S-ROM Bus (Fix Layer)](#s-rom-bus-fix-layer)
 9. [M-ROM Bus (Z80)](#m-rom-bus-z80)
 10. [V-ROM Bus (Audio)](#v-rom-bus-audio)
-11. [Display Timing](#display-timing)
-12. [Sprite Rendering Pipeline](#sprite-rendering-pipeline)
+11. [Banking and Memory Mapping](#banking-and-memory-mapping)
+12. [Display Timing](#display-timing)
+13. [Sprite Rendering Pipeline](#sprite-rendering-pipeline)
 13. [Cartridge Pinout](#cartridge-pinout)
 14. [Key Chips Reference](#key-chips-reference)
 15. [Voltage and Electrical](#voltage-and-electrical)
@@ -32,36 +33,37 @@ Neo Geo signal names follow a consistent pattern: **PREFIX + NUMBER/SUFFIX**
 
 ### Prefix = Subsystem
 
-| Prefix | Meaning | Subsystem |
-|--------|---------|-----------|
-| **D** | Data | 68000 CPU data bus |
-| **A** | Address | 68000 CPU address bus |
-| **P** | P-bus | Internal graphics multiplexed bus |
-| **CR** | C-ROM | Sprite graphics data |
-| **FIXD** | Fix Data | Fix layer (S-ROM) data |
-| **SD** | Sound | Z80/Audio subsystem |
-| **SDA** | Sound Data Address | Z80 address bus |
-| **SDD** | Sound Data Data | Z80 data bus |
-| **SDRA** | Sound ADPCM-A | ADPCM channel A address/data |
-| **SDPA** | Sound ADPCM-B | ADPCM channel B address/data |
+| Prefix   | Meaning            | Subsystem                         |
+| -------- | ------------------ | --------------------------------- |
+| **D**    | Data               | 68000 CPU data bus                |
+| **A**    | Address            | 68000 CPU address bus             |
+| **P**    | P-bus              | Internal graphics multiplexed bus |
+| **CR**   | C-ROM              | Sprite graphics data              |
+| **FIXD** | Fix Data           | Fix layer (S-ROM) data            |
+| **SD**   | Sound              | Z80/Audio subsystem               |
+| **SDA**  | Sound Data Address | Z80 address bus                   |
+| **SDD**  | Sound Data Data    | Z80 data bus                      |
+| **SDRA** | Sound ADPCM-A      | ADPCM channel A address/data      |
+| **SDPA** | Sound ADPCM-B      | ADPCM channel B address/data      |
 
 ### Suffix = Function or Bit Number
 
-| Suffix | Meaning | Example |
-|--------|---------|---------|
-| **0-N** | Bit number | D0-D15 = 16-bit data bus |
-| **OE** | Output Enable | /ROMOE |
-| **RD** | Read strobe | /SDRD0 |
-| **WR** | Write strobe | /PORTWE |
-| **CS** | Chip Select | SLOTCS |
-| **B** | Active low or inverted | PCK1B |
-| **MRD** | Memory Read | /SDMRD |
-| **MPX** | Multiplex control | SDRMPX |
-| **L/U** | Lower/Upper byte | /ROMOEL, /ROMOEU |
+| Suffix  | Meaning                | Example                  |
+| ------- | ---------------------- | ------------------------ |
+| **0-N** | Bit number             | D0-D15 = 16-bit data bus |
+| **OE**  | Output Enable          | /ROMOE                   |
+| **RD**  | Read strobe            | /SDRD0                   |
+| **WR**  | Write strobe           | /PORTWE                  |
+| **CS**  | Chip Select            | SLOTCS                   |
+| **B**   | Active low or inverted | PCK1B                    |
+| **MRD** | Memory Read            | /SDMRD                   |
+| **MPX** | Multiplex control      | SDRMPX                   |
+| **L/U** | Lower/Upper byte       | /ROMOEL, /ROMOEU         |
 
 ### Signal Groups
 
 **68000 CPU:**
+
 ```
 D0-D15      Data bus (16 bits)
 A1-A19      Address bus (A0 implied by byte strobes)
@@ -73,11 +75,13 @@ AS          Address Strobe
 ```
 
 **P-Bus (Graphics):**
+
 ```
 P0-P23      24-bit multiplexed bus (tile numbers, palette, attributes)
 ```
 
 **C-ROM (Sprites):**
+
 ```
 CR0-CR31    32-bit sprite data
             CR0-CR15  = odd ROMs (C1, C3, C5...) bitplanes 0,1
@@ -90,6 +94,7 @@ LOAD        Serializer load signal
 ```
 
 **S-ROM (Fix Layer):**
+
 ```
 FIXD0-FIXD7   8-bit fix layer data
 PCK2B         Pixel Clock 2 Bar - latches S-ROM address
@@ -97,6 +102,7 @@ PCK2B         Pixel Clock 2 Bar - latches S-ROM address
 ```
 
 **Z80 / Sound:**
+
 ```
 SDA0-SDA15    Z80 Address bus (16 bits)
 SDD0-SDD7     Z80 Data bus (8 bits)
@@ -105,6 +111,7 @@ SDD0-SDD7     Z80 Data bus (8 bits)
 ```
 
 **ADPCM Audio:**
+
 ```
 SDRA0-SDRA23    ADPCM-A ROM address (low bits multiplexed, high bits direct)
 SDRAD0-SDRAD7   ADPCM-A ROM data
@@ -116,6 +123,7 @@ SDPAD0-SDPAD7   ADPCM-B ROM data
 ```
 
 **Clocks:**
+
 ```
 24M       Master clock (24 MHz)
 12M       CPU/video clock (24÷2 = 12 MHz)
@@ -144,14 +152,14 @@ B suffix = active low   L/U suffix = lower/upper byte
 
 ## Physical Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| Pin pitch | 0.1 inch (2.54mm) |
-| Board thickness | 1.6mm |
-| Pins per board | 120 (60 per side) |
-| Total pins per cartridge | 240 |
-| Connector type | Card edge |
-| Board count | 2 (PROG + CHA) |
+| Parameter                | Value             |
+| ------------------------ | ----------------- |
+| Pin pitch                | 0.1 inch (2.54mm) |
+| Board thickness          | 1.6mm             |
+| Pins per board           | 120 (60 per side) |
+| Total pins per cartridge | 240               |
+| Connector type           | Card edge         |
+| Board count              | 2 (PROG + CHA)    |
 
 ---
 
@@ -163,31 +171,31 @@ The Neo Geo cartridge consists of two separate PCBs stacked inside the cartridge
 
 **Purpose:** Character/graphics data
 
-| Contents | Description |
-|----------|-------------|
-| C-ROM | Sprite graphics (16-bit pairs) |
-| S-ROM | Fix layer graphics (8-bit) |
-| M-ROM | Z80 program code (8-bit) |
+| Contents           | Description                       |
+| ------------------ | --------------------------------- |
+| C-ROM              | Sprite graphics (16-bit pairs)    |
+| S-ROM              | Fix layer graphics (8-bit)        |
+| M-ROM              | Z80 program code (8-bit)          |
 | NEO-ZMC2 / PRO-CT0 | C-ROM serializer (on some boards) |
 
 ### PROG Board (Top - CTRG2)
 
 **Purpose:** Program code and audio samples
 
-| Contents | Description |
-|----------|-------------|
-| P-ROM | 68000 program code (16-bit) |
-| V-ROM | ADPCM audio samples |
-| Banking logic | For games > 1MB P-ROM |
+| Contents      | Description                 |
+| ------------- | --------------------------- |
+| P-ROM         | 68000 program code (16-bit) |
+| V-ROM         | ADPCM audio samples         |
+| Banking logic | For games > 1MB P-ROM       |
 
 ### Common Board Types
 
-| PROG Board | CHA Board | Max C-ROM | Notes |
-|------------|-----------|-----------|-------|
-| PROG-B | CHA-32 | 4MB | Early small games |
-| PROG-B | CHA-42 | 8MB | Common mid-era |
-| PROGBK1 | CHA256 | 32MB | Large games |
-| PROGBK1 | CHA512Y | 64MB | Maximum capacity |
+| PROG Board | CHA Board | Max C-ROM | Notes             |
+| ---------- | --------- | --------- | ----------------- |
+| PROG-B     | CHA-32    | 4MB       | Early small games |
+| PROG-B     | CHA-42    | 8MB       | Common mid-era    |
+| PROGBK1    | CHA256    | 32MB      | Large games       |
+| PROGBK1    | CHA512Y   | 64MB      | Maximum capacity  |
 
 **Note:** Later boards (post-1999) may include encryption chips (NEO-CMC, NEO-SMA).
 
@@ -197,15 +205,15 @@ The Neo Geo cartridge consists of two separate PCBs stacked inside the cartridge
 
 All timing derives from a master crystal oscillator:
 
-| Signal | Frequency | Derivation | Generator | Purpose |
-|--------|-----------|------------|-----------|---------|
-| **24M** | 24.000 MHz (MVS) / 24.167829 MHz (AES) | Master clock | Crystal | Reference |
-| **12M** | 12 MHz | 24M ÷ 2 | NEO-D0 | 68000 CPU, NEO-ZMC2 |
-| **8M** | 8 MHz | 24M ÷ 3 | LSPC2-A2 | YM2610 sound chip |
-| **6M** | 6 MHz | 24M ÷ 4 | NEO-D0 | Pixel clock, video output |
-| **4M** | 4 MHz | 24M ÷ 6 | LSPC2-A2 | Z80 CPU |
-| **3M** | 3 MHz | 24M ÷ 8 | NEO-D0 | NEO-B1 |
-| **68KCLK** | 12 MHz | = 12M | NEO-D0 | 68000 clock input |
+| Signal     | Frequency                              | Derivation   | Generator | Purpose                   |
+| ---------- | -------------------------------------- | ------------ | --------- | ------------------------- |
+| **24M**    | 24.000 MHz (MVS) / 24.167829 MHz (AES) | Master clock | Crystal   | Reference                 |
+| **12M**    | 12 MHz                                 | 24M ÷ 2      | NEO-D0    | 68000 CPU, NEO-ZMC2       |
+| **8M**     | 8 MHz                                  | 24M ÷ 3      | LSPC2-A2  | YM2610 sound chip         |
+| **6M**     | 6 MHz                                  | 24M ÷ 4      | NEO-D0    | Pixel clock, video output |
+| **4M**     | 4 MHz                                  | 24M ÷ 6      | LSPC2-A2  | Z80 CPU                   |
+| **3M**     | 3 MHz                                  | 24M ÷ 8      | NEO-D0    | NEO-B1                    |
+| **68KCLK** | 12 MHz                                 | = 12M        | NEO-D0    | 68000 clock input         |
 
 **1 mclk (master clock cycle) = 41.67 ns**
 
@@ -215,13 +223,16 @@ All timing derives from a master crystal oscillator:
 
 ## ROM Types Overview
 
-| ROM Type | Bus Width | Max Size | Timing Requirement | Purpose |
-|----------|-----------|----------|-------------------|---------|
-| P-ROM | 16-bit | 2MB+ (banked) | 150ns | 68000 program |
-| C-ROM | 32-bit (2×16) | 64MB+ | <250ns (~8 mclk window) | Sprite graphics |
-| S-ROM | 8-bit | 128KB+ | ~200ns (5-6 mclk, uncertain) | Fix layer graphics |
-| M-ROM | 8-bit | 128KB+ | Relaxed | Z80 program |
-| V-ROM | 8-bit | 32MB+ | A: >2μs, B: 250ns | ADPCM samples |
+| ROM Type  | Bus Width | Max Capacity (Official)         | Largest Known    | Timing Requirement | Purpose            |
+| --------- | --------- | ------------------------------- | ---------------- | ------------------ | ------------------ |
+| **P-ROM** | 16-bit    | 1MB (Direct) / 8MB (Banked)     | 8MB (KOF 2003)   | 150ns              | 68000 program      |
+| **C-ROM** | 32-bit    | 64MB (Direct) / 128MB+ (Banked) | 64MB (Garou/KOF) | <250ns (~8 mclk)   | Sprite graphics    |
+| **S-ROM** | 8-bit     | 128KB (Direct) / 512KB (Banked) | 512KB (KOF 2000) | ~200ns (uncertain) | Fix layer graphics |
+| **M-ROM** | 8-bit     | 128KB (Banked)                  | 128KB (Standard) | Relaxed            | Z80 program        |
+| **V-ROM** | 8-bit     | 32MB (Direct) / 64MB+ (Banked)  | ~48MB (KOF 2003) | A: >2μs, B: 250ns  | ADPCM samples      |
+
+**Note on Total Size and Banking:**
+The "Giga Power" marketing label refers to cartridges reaching 1024 Megabits (**128MB**) total. While physical pins have limits (e.g., 64MB for C-ROM on a `CHA512Y` board), games used custom mappers (`NEO-CMC`, `NEO-SMA`) to bank data. _Garou: Mark of the Wolves_ is approximately **86MB** (688Mb) total, with 64MB dedicated to C-ROM. Modern flashcarts should target **128MB** total capacity to support all official titles and large homebrew.
 
 ---
 
@@ -233,23 +244,24 @@ The P-ROM contains 68000 machine code. It connects to the main CPU data and addr
 
 ### Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| Data bus width | 16 bits (D0-D15) |
-| Address bus | A1-A19 (directly addressable: 1MB) |
-| Minimum speed | 150ns |
-| Access type | Asynchronous with /DTACK |
+| Parameter      | Value                              |
+| -------------- | ---------------------------------- |
+| Data bus width | 16 bits (D0-D15)                   |
+| Address bus    | A1-A19 (directly addressable: 1MB) |
+| Minimum speed  | 150ns                              |
+| Access type    | Asynchronous with /DTACK           |
 
 ### Memory Map
 
-| Address Range | Size | Description |
-|---------------|------|-------------|
-| $000000-$0FFFFF | 1MB | P-ROM (directly mapped) |
-| $200000-$2FFFFF | 1MB | P-ROM bank window (if banked) |
+| Address Range   | Size | Description                   |
+| --------------- | ---- | ----------------------------- |
+| $000000-$0FFFFF | 1MB  | P-ROM (directly mapped)       |
+| $200000-$2FFFFF | 1MB  | P-ROM bank window (if banked) |
 
 ### Banking
 
 Games larger than 1MB use bank switching:
+
 - Banks are typically 1MB each
 - Controlled by writes to specific addresses
 - Some games use NEO-SMA for banking + encryption
@@ -258,14 +270,14 @@ Games larger than 1MB use bank switching:
 
 ### Control Signals
 
-| Signal | Description |
-|--------|-------------|
-| /ROMOE | P1 ROM output enable |
+| Signal  | Description             |
+| ------- | ----------------------- |
+| /ROMOE  | P1 ROM output enable    |
 | /ROMOEL | P ROM lower byte enable |
 | /ROMOEU | P ROM upper byte enable |
-| /DTACK | Data acknowledge to CPU |
-| R/W | Read/Write direction |
-| AS | Address strobe |
+| /DTACK  | Data acknowledge to CPU |
+| R/W     | Read/Write direction    |
+| AS      | Address strobe          |
 
 ---
 
@@ -277,22 +289,22 @@ The C-ROM bus is the most timing-critical. It feeds sprite graphics data to the 
 
 ### Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| Data bus width | 32 bits (CR0-CR31) |
-| Organization | Paired 16-bit ROMs (odd/even) |
-| Max capacity | 64MB+ (with banking) |
+| Parameter          | Value                          |
+| ------------------ | ------------------------------ |
+| Data bus width     | 32 bits (CR0-CR31)             |
+| Organization       | Paired 16-bit ROMs (odd/even)  |
+| Max capacity       | 64MB+ (with banking)           |
 | Timing requirement | <250ns (see timing note below) |
-| Tiles per scanline | Max 96 |
+| Tiles per scanline | Max 96                         |
 
 ### ROM Pairing
 
 C-ROMs are organized in pairs, each containing half the bitplanes:
 
-| ROM | Contains | Bitplanes |
-|-----|----------|-----------|
-| Odd (C1, C3, C5...) | First half | 0, 1 |
-| Even (C2, C4, C6...) | Second half | 2, 3 |
+| ROM                  | Contains    | Bitplanes |
+| -------------------- | ----------- | --------- |
+| Odd (C1, C3, C5...)  | First half  | 0, 1      |
+| Even (C2, C4, C6...) | Second half | 2, 3      |
 
 Both ROMs are read simultaneously, providing 32 bits (4 bytes) per access.
 
@@ -300,13 +312,14 @@ Both ROMs are read simultaneously, providing 32 bits (4 bytes) per access.
 
 C-ROM addresses are extracted from the multiplexed P-bus using latch chips:
 
-| Signal | Function |
-|--------|----------|
-| **PCK1B** | Clock to latch C-ROM address |
-| P0-P23 | Multiplexed address from LSPC |
-| CA4 | Separate address bit (not on P-bus) |
+| Signal    | Function                            |
+| --------- | ----------------------------------- |
+| **PCK1B** | Clock to latch C-ROM address        |
+| P0-P23    | Multiplexed address from LSPC       |
+| CA4       | Separate address bit (not on P-bus) |
 
 **PCK1B Timing:**
+
 - Frequency: 1.5 MHz
 - Low period: 55ns (address setup)
 - High period: 610ns (data valid window)
@@ -330,13 +343,14 @@ Tile structure: 128 bytes total
 
 The 32-bit parallel data must be serialized to 4-bit pixels:
 
-| Chip | Location | Function |
-|------|----------|----------|
-| NEO-ZMC2 | Motherboard (AES) or CHA board | Serializes C-ROM data |
-| PRO-CT0 | CHA board variant | Alternative serializer |
-| NEO-CMC | CHA board (late games) | Serializer + encryption |
+| Chip     | Location                       | Function                |
+| -------- | ------------------------------ | ----------------------- |
+| NEO-ZMC2 | Motherboard (AES) or CHA board | Serializes C-ROM data   |
+| PRO-CT0  | CHA board variant              | Alternative serializer  |
+| NEO-CMC  | CHA board (late games)         | Serializer + encryption |
 
 **NEO-ZMC2 Timing:**
+
 - Clock: 12 MHz
 - Latches data on rising edge of 12M
 - Outputs next pixel on falling edge
@@ -351,12 +365,12 @@ The S-ROM contains the "fix" layer - static text/UI graphics that overlay sprite
 
 ### Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| Data bus width | 8 bits (FIXD0-FIXD7) |
-| Max capacity | 128KB (banked with NEO-CMC) |
+| Parameter          | Value                        |
+| ------------------ | ---------------------------- |
+| Data bus width     | 8 bits (FIXD0-FIXD7)         |
+| Max capacity       | 128KB (banked with NEO-CMC)  |
 | Timing requirement | ~200ns (5-6 mclk, uncertain) |
-| Tile size | 8×8 pixels, 4bpp |
+| Tile size          | 8×8 pixels, 4bpp             |
 
 ### Tile Format
 
@@ -384,10 +398,10 @@ Address bits: ...nHCLLL
 
 ### Address Latching
 
-| Signal | Function |
-|--------|----------|
+| Signal    | Function                     |
+| --------- | ---------------------------- |
 | **PCK2B** | Clock to latch S-ROM address |
-| 2H1 | Separate address bit (SA3) |
+| 2H1       | Separate address bit (SA3)   |
 
 ---
 
@@ -399,26 +413,27 @@ The M-ROM contains the Z80 sound CPU program code.
 
 ### Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| Data bus width | 8 bits (SDD0-SDD7) |
-| Address bus | 16 bits (SDA0-SDA15) |
-| Max capacity | 128KB (64KB directly + banking) |
-| Timing requirement | Relaxed (Z80 @ 4MHz) |
+| Parameter          | Value                           |
+| ------------------ | ------------------------------- |
+| Data bus width     | 8 bits (SDD0-SDD7)              |
+| Address bus        | 16 bits (SDA0-SDA15)            |
+| Max capacity       | 128KB (64KB directly + banking) |
+| Timing requirement | Relaxed (Z80 @ 4MHz)            |
 
 ### Banking
 
 For M-ROM > 64KB:
+
 - NEO-ZMC or NEO-ZMC2 handles bank switching
 - Lower 32KB: Fixed
 - Upper 32KB: Bankable window
 
 ### Control Signals
 
-| Signal | Function |
-|--------|----------|
+| Signal | Function          |
+| ------ | ----------------- |
 | /SDMRD | M-ROM read enable |
-| /SDROM | ROM chip select |
+| /SDROM | ROM chip select   |
 
 ---
 
@@ -433,26 +448,28 @@ V-ROMs contain ADPCM audio samples for the YM2610 sound chip.
 The YM2610 has two ADPCM channels with different timing:
 
 | Channel | Bus Width | Timing Requirement | Typical Size |
-|---------|-----------|-------------------|--------------|
-| ADPCM-A | 8-bit | >2μs | Variable |
-| ADPCM-B | 8-bit | 250ns | Variable |
+| ------- | --------- | ------------------ | ------------ |
+| ADPCM-A | 8-bit     | >2μs               | Variable     |
+| ADPCM-B | 8-bit     | 250ns              | Variable     |
 
 ### Address Buses
 
 **ADPCM-A:**
+
 - SDRAD0-SDRAD7 (multiplexed)
 - SDRA8-SDRA9, SDRA20-SDRA23
 
 **ADPCM-B:**
+
 - SDPAD0-SDPAD7 (multiplexed)
 - SDPA8-SDPA11
 
 ### Control Signals
 
-| Signal | Function |
-|--------|----------|
-| /SDRD0 | ADPCM-A ROM read |
-| /SDRD1 | ADPCM-B ROM read |
+| Signal | Function          |
+| ------ | ----------------- |
+| /SDRD0 | ADPCM-A ROM read  |
+| /SDRD1 | ADPCM-B ROM read  |
 | /SDPOE | PCM output enable |
 
 ---
@@ -461,40 +478,40 @@ The YM2610 has two ADPCM channels with different timing:
 
 ### Frame Structure (NTSC)
 
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 320×224 visible |
-| Total pixels | 384×264 |
-| Frame rate | ~59.185 Hz |
+| Parameter         | Value            |
+| ----------------- | ---------------- |
+| Resolution        | 320×224 visible  |
+| Total pixels      | 384×264          |
+| Frame rate        | ~59.185 Hz       |
 | Scanline duration | 1536 mclk (64μs) |
 
 ### Horizontal Timing (per scanline)
 
-| Phase | Duration (mclk) | Duration (px) | Duration (μs) |
-|-------|-----------------|---------------|---------------|
-| H-Sync | 112 | 28 | 4.67 |
-| Back porch | 112 | 28 | 4.67 |
-| **Active display** | 1280 | 320 | 53.33 |
-| Front porch | 32 | 8 | 1.33 |
-| **H-Blank total** | 256 | 64 | 10.67 |
-| **Total** | 1536 | 384 | 64.00 |
+| Phase              | Duration (mclk) | Duration (px) | Duration (μs) |
+| ------------------ | --------------- | ------------- | ------------- |
+| H-Sync             | 112             | 28            | 4.67          |
+| Back porch         | 112             | 28            | 4.67          |
+| **Active display** | 1280            | 320           | 53.33         |
+| Front porch        | 32              | 8             | 1.33          |
+| **H-Blank total**  | 256             | 64            | 10.67         |
+| **Total**          | 1536            | 384           | 64.00         |
 
 ### Vertical Timing (NTSC)
 
-| Phase | Scanlines |
-|-------|-----------|
-| V-Sync | 8 |
-| Top border | 16 (blanked) |
-| **Active display** | 224 |
-| Bottom border | 16 (blanked) |
-| **Total** | 264 |
+| Phase              | Scanlines    |
+| ------------------ | ------------ |
+| V-Sync             | 8            |
+| Top border         | 16 (blanked) |
+| **Active display** | 224          |
+| Bottom border      | 16 (blanked) |
+| **Total**          | 264          |
 
 ### Blanking Signals
 
-| Signal | Function |
-|--------|----------|
-| CHBL | Horizontal blanking - forces palette 0, color 0 |
-| BNKB | Vertical blanking - forces DAC to 0 |
+| Signal | Function                                        |
+| ------ | ----------------------------------------------- |
+| CHBL   | Horizontal blanking - forces palette 0, color 0 |
+| BNKB   | Vertical blanking - forces DAC to 0             |
 
 ---
 
@@ -517,8 +534,8 @@ Two pixels are rendered simultaneously via odd/even buffer pairs.
 
 ### Pipeline Timing
 
-| Line N-2 | Line N-1 | Line N |
-|----------|----------|--------|
+| Line N-2            | Line N-1             | Line N        |
+| ------------------- | -------------------- | ------------- |
 | Parse sprites for N | Render sprites for N | Output line N |
 
 ### Sprite Parsing (during line N-2)
@@ -530,15 +547,16 @@ Two pixels are rendered simultaneously via odd/even buffer pairs.
 
 ### Sprite Limits
 
-| Limit | Value | Notes |
-|-------|-------|-------|
-| Sprites per scanline | 96 | Hardware limit |
-| Sprites per frame | 381 | VRAM constraint allows 448, but parsing limited |
-| Sprite priority | 1 = back, higher = front | |
+| Limit                | Value                    | Notes                                           |
+| -------------------- | ------------------------ | ----------------------------------------------- |
+| Sprites per scanline | 96                       | Hardware limit                                  |
+| Sprites per frame    | 381                      | VRAM constraint allows 448, but parsing limited |
+| Sprite priority      | 1 = back, higher = front |                                                 |
 
 ### C-ROM Access Pattern
 
 Per rendered tile line:
+
 1. PCK1B rises → Address latched from P-bus
 2. Address decoded to C-ROM
 3. 32-bit data read from C-ROM pair
@@ -628,72 +646,72 @@ Per rendered tile line:
 **Top Side:**
 
 | Pin | Signal | Pin | Signal |
-|-----|--------|-----|--------|
-| 1 | GND | 31 | D8 |
-| 2 | GND | 32 | D9 |
-| 3 | D0 | 33 | D10 |
-| 4 | D1 | 34 | D11 |
-| 5 | D2 | 35 | D12 |
-| 6 | D3 | 36 | D13 |
-| 7 | D4 | 37 | D14 |
-| 8 | D5 | 38 | D15 |
-| 9 | D6 | 39 | SDRA8 |
-| 10 | D7 | 40 | SDRA9 |
-| 11 | A1 | 41 | SDRA20 |
-| 12 | A2 | 42 | SDRA21 |
-| 13 | A3 | 43 | SDRA22 |
-| 14 | A4 | 44 | SDRA23 |
-| 15 | A5 | 45 | SDRAD0 |
-| 16 | A6 | 46 | SDRAD1 |
-| 17 | A7 | 47 | SDRAD2 |
-| 18 | A8 | 48 | SDRAD3 |
-| 19 | A9 | 49 | SDRAD4 |
-| 20 | A10 | 50 | SDRAD5 |
-| 21 | A11 | 51 | SDRAD6 |
-| 22 | A12 | 52 | SDRAD7 |
-| 23 | A13 | 53 | SDPA8 |
-| 24 | A14 | 54 | SDPA9 |
-| 25 | A15 | 55 | SDPA10 |
-| 26 | A16 | 56 | SDPA11 |
-| 27 | A17 | 57 | GND |
-| 28 | A18 | 58 | GND |
-| 29 | VCC | 59 | VCC |
-| 30 | VCC | 60 | VCC |
+| --- | ------ | --- | ------ |
+| 1   | GND    | 31  | D8     |
+| 2   | GND    | 32  | D9     |
+| 3   | D0     | 33  | D10    |
+| 4   | D1     | 34  | D11    |
+| 5   | D2     | 35  | D12    |
+| 6   | D3     | 36  | D13    |
+| 7   | D4     | 37  | D14    |
+| 8   | D5     | 38  | D15    |
+| 9   | D6     | 39  | SDRA8  |
+| 10  | D7     | 40  | SDRA9  |
+| 11  | A1     | 41  | SDRA20 |
+| 12  | A2     | 42  | SDRA21 |
+| 13  | A3     | 43  | SDRA22 |
+| 14  | A4     | 44  | SDRA23 |
+| 15  | A5     | 45  | SDRAD0 |
+| 16  | A6     | 46  | SDRAD1 |
+| 17  | A7     | 47  | SDRAD2 |
+| 18  | A8     | 48  | SDRAD3 |
+| 19  | A9     | 49  | SDRAD4 |
+| 20  | A10    | 50  | SDRAD5 |
+| 21  | A11    | 51  | SDRAD6 |
+| 22  | A12    | 52  | SDRAD7 |
+| 23  | A13    | 53  | SDPA8  |
+| 24  | A14    | 54  | SDPA9  |
+| 25  | A15    | 55  | SDPA10 |
+| 26  | A16    | 56  | SDPA11 |
+| 27  | A17    | 57  | GND    |
+| 28  | A18    | 58  | GND    |
+| 29  | VCC    | 59  | VCC    |
+| 30  | VCC    | 60  | VCC    |
 
 **Bottom Side:**
 
-| Pin | Signal | Pin | Signal |
-|-----|--------|-----|--------|
-| 1 | GND | 31 | R/W |
-| 2 | GND | 32 | AS |
-| 3 | A19 | 33 | /ROMOE |
-| 4 | (NC) | 34 | 4MB |
-| 5 | SYSTEMB | 35 | /ROMOEU |
-| 6 | SLOTCS | 36 | /ROMOEL |
-| 7 | /RESET | 37 | /PORTOEL |
-| 8 | ROMWAIT | 38 | /PORTOEU |
-| 9 | PWAIT0 | 39 | /PORTADRS |
-| 10 | PWAIT1 | 40 | /PORTWE |
-| 11 | PDTACK | 41 | VPA |
-| 12 | SDD0 | 42 | SDPAD0 |
-| 13 | SDD1 | 43 | SDPAD1 |
-| 14 | SDD2 | 44 | SDPAD2 |
-| 15 | SDD3 | 45 | SDPAD3 |
-| 16 | SDD4 | 46 | SDPAD4 |
-| 17 | SDD5 | 47 | SDPAD5 |
-| 18 | SDD6 | 48 | SDPAD6 |
-| 19 | SDD7 | 49 | SDPAD7 |
-| 20 | /SDPOE0 | 50 | /SDPOE1 |
-| 21 | /SDROE | 51 | /SDRMPX |
-| 22 | /SDRA00 | 52 | /SDRMPX |
-| 23 | /SDRA01 | 53 | SDRA00 |
-| 24 | SDRA02 | 54 | SDRA01 |
-| 25 | SDRA03 | 55 | SDRA02 |
-| 26 | SDRA04 | 56 | SDRA03 |
-| 27 | SDRA05 | 57 | SDRA04 |
-| 28 | SDRA06 | 58 | SDRA05 |
-| 29 | VCC | 59 | VCC |
-| 30 | VCC | 60 | VCC |
+| Pin | Signal  | Pin | Signal    |
+| --- | ------- | --- | --------- |
+| 1   | GND     | 31  | R/W       |
+| 2   | GND     | 32  | AS        |
+| 3   | A19     | 33  | /ROMOE    |
+| 4   | (NC)    | 34  | 4MB       |
+| 5   | SYSTEMB | 35  | /ROMOEU   |
+| 6   | SLOTCS  | 36  | /ROMOEL   |
+| 7   | /RESET  | 37  | /PORTOEL  |
+| 8   | ROMWAIT | 38  | /PORTOEU  |
+| 9   | PWAIT0  | 39  | /PORTADRS |
+| 10  | PWAIT1  | 40  | /PORTWE   |
+| 11  | PDTACK  | 41  | VPA       |
+| 12  | SDD0    | 42  | SDPAD0    |
+| 13  | SDD1    | 43  | SDPAD1    |
+| 14  | SDD2    | 44  | SDPAD2    |
+| 15  | SDD3    | 45  | SDPAD3    |
+| 16  | SDD4    | 46  | SDPAD4    |
+| 17  | SDD5    | 47  | SDPAD5    |
+| 18  | SDD6    | 48  | SDPAD6    |
+| 19  | SDD7    | 49  | SDPAD7    |
+| 20  | /SDPOE0 | 50  | /SDPOE1   |
+| 21  | /SDROE  | 51  | /SDRMPX   |
+| 22  | /SDRA00 | 52  | /SDRMPX   |
+| 23  | /SDRA01 | 53  | SDRA00    |
+| 24  | SDRA02  | 54  | SDRA01    |
+| 25  | SDRA03  | 55  | SDRA02    |
+| 26  | SDRA04  | 56  | SDRA03    |
+| 27  | SDRA05  | 57  | SDRA04    |
+| 28  | SDRA06  | 58  | SDRA05    |
+| 29  | VCC     | 59  | VCC       |
+| 30  | VCC     | 60  | VCC       |
 
 **Note:** Original schematics had /ROMOE and 4MB swapped. Corrected pinout shown above.
 
@@ -703,51 +721,51 @@ Per rendered tile line:
 
 ### LSPC (Line Sprite Controller)
 
-| Function | Description |
-|----------|-------------|
-| Sprite parsing | Evaluates which sprites visible per line |
-| P-bus control | Multiplexes tile/palette data |
-| Timing generation | PCK1B, PCK2B, blanking signals |
-| Line buffer control | CK1-4, WE signals |
+| Function            | Description                              |
+| ------------------- | ---------------------------------------- |
+| Sprite parsing      | Evaluates which sprites visible per line |
+| P-bus control       | Multiplexes tile/palette data            |
+| Timing generation   | PCK1B, PCK2B, blanking signals           |
+| Line buffer control | CK1-4, WE signals                        |
 
 ### NEO-B1
 
-| Function | Description |
-|----------|-------------|
-| Line buffers | Handles sprite rendering into internal line buffers |
-| Palette interface | Outputs addresses to external 4KB palette RAM |
-| Color lookup | Converts tile pixels to RGB via DAC |
-| Fix layer rendering | Real-time overlay on sprite buffer output |
+| Function            | Description                                         |
+| ------------------- | --------------------------------------------------- |
+| Line buffers        | Handles sprite rendering into internal line buffers |
+| Palette interface   | Outputs addresses to external 4KB palette RAM       |
+| Color lookup        | Converts tile pixels to RGB via DAC                 |
+| Fix layer rendering | Real-time overlay on sprite buffer output           |
 
 **Note:** The 4KB palette RAM consists of external SRAM chips; NEO-B1 interfaces with but does not contain this memory.
 
 ### NEO-ZMC2 / PRO-CT0
 
-| Function | Description |
-|----------|-------------|
+| Function            | Description                    |
+| ------------------- | ------------------------------ |
 | C-ROM serialization | 32-bit parallel → 4-bit serial |
-| Horizontal flip | Reverses pixel order |
-| EVEN swap | Swaps pixel pairs |
-| M-ROM banking | Address generation for Z80 |
+| Horizontal flip     | Reverses pixel order           |
+| EVEN swap           | Swaps pixel pairs              |
+| M-ROM banking       | Address generation for Z80     |
 
 ### NEO-D0
 
-| Function | Description |
-|----------|-------------|
+| Function         | Description                               |
+| ---------------- | ----------------------------------------- |
 | Clock generation | Divides 24M to 12M (÷2), 6M (÷4), 3M (÷8) |
-| Watchdog | System reset on hang (via CHBL counter) |
-| Z80 control | Memory and port control, YM2610 interface |
-| Memory card | Bank selection control |
+| Watchdog         | System reset on hang (via CHBL counter)   |
+| Z80 control      | Memory and port control, YM2610 interface |
+| Memory card      | Bank selection control                    |
 
 **Note:** The calendar/RTC is handled by a separate D4990 chip, not NEO-D0. LSPC2-A2 generates 8M (÷3) and 4M (÷6) clocks.
 
 ### YM2610
 
-| Function | Description |
-|----------|-------------|
+| Function         | Description                   |
+| ---------------- | ----------------------------- |
 | Sound generation | FM synthesis + ADPCM playback |
-| V-ROM interface | Dual ADPCM channels (A + B) |
-| SSG | 3-channel square wave |
+| V-ROM interface  | Dual ADPCM channels (A + B)   |
+| SSG              | 3-channel square wave         |
 
 ---
 
@@ -755,30 +773,30 @@ Per rendered tile line:
 
 ### Power Rails
 
-| Rail | Voltage | Purpose |
-|------|---------|---------|
-| VCC | +5V | Logic and ROMs |
-| GND | 0V | Ground reference |
+| Rail | Voltage | Purpose          |
+| ---- | ------- | ---------------- |
+| VCC  | +5V     | Logic and ROMs   |
+| GND  | 0V      | Ground reference |
 
 ### Signal Levels
 
-| Parameter | Value |
-|-----------|-------|
-| Logic family | 5V TTL/CMOS |
-| VOH (output high) | >2.4V |
-| VOL (output low) | <0.4V |
-| VIH (input high) | >2.0V |
-| VIL (input low) | <0.8V |
+| Parameter         | Value       |
+| ----------------- | ----------- |
+| Logic family      | 5V TTL/CMOS |
+| VOH (output high) | >2.4V       |
+| VOL (output low)  | <0.4V       |
+| VIH (input high)  | >2.0V       |
+| VIL (input low)   | <0.8V       |
 
 ### Level Shifting Considerations
 
 Modern components (3.3V FPGA, MCU, PSRAM) require level shifting:
 
-| Approach | Latency | Notes |
-|----------|---------|-------|
-| Auto-sensing bidirectional | 8-15ns | Avoid for timing-critical signals |
-| Direction-specified | 3-8ns | Preferred (e.g., TI TXB series) |
-| Series resistor + clamp | <1ns | Works for some inputs |
+| Approach                   | Latency | Notes                             |
+| -------------------------- | ------- | --------------------------------- |
+| Auto-sensing bidirectional | 8-15ns  | Avoid for timing-critical signals |
+| Direction-specified        | 3-8ns   | Preferred (e.g., TI TXB series)   |
+| Series resistor + clamp    | <1ns    | Works for some inputs             |
 
 **Critical:** Level shifter latency directly impacts timing budget.
 
@@ -793,10 +811,14 @@ Modern components (3.3V FPGA, MCU, PSRAM) require level shifting:
 
 ---
 
-*Document version: 1.2*
-*Created: December 2025*
-*Last updated: December 2025 - Fact-checked against NeoGeo Development Wiki and other sources*
+_Document version: 1.5_
+_Created: December 2025_
+_Last updated: December 2025 - Added dedicated Banking and Memory Mapping section_
 
 ### Changelog
+
+- **v1.5**: Added a dedicated "Banking and Memory Mapping" section to explain logic locations (Cartridge vs. Console) and mechanisms for all subsystems.
+- **v1.4**: Corrected C-ROM vs. Total Cartridge size for _Garou_ (64MB C-ROM, 86MB Total), updated V-ROM maximum to _KOF 2003_ (~48MB), and clarified "Giga Power" 128MB limit.
+- **v1.3**: Updated ROM Types Overview with official maximums for "Giga Power" era games (e.g., 8MB P-ROM, 86MB C-ROM), clarified banking logic and the meaning of the "+" size indicators.
 - **v1.2**: Removed incorrect ribbon cable claim (boards use separate edge connectors CTRG1/CTRG2), clarified C-ROM timing window (~8 mclk per read, not 7 mclk).
 - **v1.1**: Corrected clock generation attribution (NEO-D0 vs LSPC2-A2), clarified NEO-D0 functions (calendar is D4990, not NEO-D0), updated NEO-B1 description (palette RAM is external), noted S-ROM timing uncertainty.

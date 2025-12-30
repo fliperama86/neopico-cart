@@ -14,13 +14,14 @@ The Neo Geo uses a multi-bus architecture with separate ROM buses for different 
 
 | Bus | Purpose | Size (Largest Games) | Timing Criticality |
 |-----|---------|---------------------|-------------------|
-| **P-ROM** | 68000 program code | ~4 MB | High (CPU wait states) |
-| **C-ROM** | Sprite graphics | ~86 MB (Garou) | **Critical** (real-time rendering) |
-| **S-ROM** | Fix layer graphics | ~128 KB | Medium |
+| **C-ROM** | Sprite graphics | ~64 MB (Garou/KOF) | **Critical** (real-time rendering) |
+| **S-ROM** | Fix layer graphics | ~512 KB | Medium |
 | **M-ROM** | Z80 sound program | ~128 KB | Low |
-| **V-ROM** | ADPCM audio samples | ~32 MB | Medium (buffered) |
-
-**Total ROM for largest games**: ~96-128 MB (Garou: Mark of the Wolves is ~86 MB)
+| **V-ROM** | ADPCM audio samples | ~48 MB (KOF 2003) | Medium (buffered) |
+| **P-ROM** | 68000 program code | ~8 MB (KOF 2003) | High (CPU wait states) |
+| **Total** | **All ROMs** | **~128 MB (Max Official)** | **Target Capacity** |
+new_string_2:
+**Total ROM for largest games**: ~128 MB (Garou: Mark of the Wolves is ~86 MB total)
 
 ### Critical Timing Constraints
 
